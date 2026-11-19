@@ -50,6 +50,7 @@ export function papar(page, rest) {
       <p class="small muted" style="margin:16px 0 0">UPAR Suite v${esc(S.boot.versi || '')}</p>
     </section>
   </div>`;
+  page.insertAdjacentHTML('beforeend', '<p class="kredit" style="margin-top:24px">Developed by TUTI 2026</p>');
 
   if (rest[0] === 'pin' || paksa) $('#secPin', page).scrollIntoView({ block: 'center' });
 

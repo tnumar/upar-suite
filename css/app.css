@@ -797,3 +797,5 @@ fieldset.inv-unit legend { font-size: 13px; font-weight: 700; color: var(--ink-2
 .login-form form { text-align: center; }
 .login-form .field > span { text-align: center; }
 .login-form .in { text-align: center; }
+
+.kredit { margin: 8px 0 0; text-align: center; font-size: 11px; color: var(--muted); opacity: .8; }

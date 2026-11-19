@@ -55,7 +55,7 @@ function lukisRangka() {
     <aside class="side">
       <div class="brand"><img src="${esc(logoUrl())}" alt=""><div><b>${esc(j.namaApp || 'UPAR Suite')}</b><small>${esc(j.subjudul || '')}</small></div></div>
       <nav class="nav"><h6>Modul</h6>${navHtml}${adminHtml}</nav>
-      <div class="side-foot"><a class="me" href="#/profil"><span class="av">${esc(inisial(me.nama))}</span><span style="min-width:0"><b>${esc(me.nama)}</b><small>${esc(me.stafId)}${env && env !== 'PRODUKSI' ? ' · ' + esc(env) : ''}</small></span></a></div>
+      <div class="side-foot"><a class="me" href="#/profil"><span class="av">${esc(inisial(me.nama))}</span><span style="min-width:0"><b>${esc(me.nama)}</b><small>${esc(me.stafId)}${env && env !== 'PRODUKSI' ? ' · ' + esc(env) : ''}</small></span></a><p class="kredit">Developed by TUTI 2026</p></div>
     </aside>
     <div class="main">
       <header class="top" id="top"><img class="tlogo" src="${esc(logoUrl())}" alt=""><h1 id="tajuk"></h1>

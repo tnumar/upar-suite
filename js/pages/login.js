@@ -9,10 +9,10 @@ export function papar(root, selesai) {
       <div>
         <img class="hero-logo" src="assets/logo.svg" alt="">
         <h1>UPAR Suite</h1>
-        <p>Unit Pendispensan Aseptik &amp; Radiofarmasi, Jabatan Farmasi HPUSM. Satu log masuk untuk semua sistem unit.</p>
+        <p>Unit Pendispensan Aseptik &amp; Radiofarmasi, Jabatan Farmasi HPUSM.</p>
         <div class="mods"><span>Dashboard</span><span>Guttae</span><span>Buku Off</span><span>Inventori</span><span>Formulari</span><span>Pergerakan Staf</span></div>
       </div>
-      <small style="opacity:.6">© ${new Date().getFullYear()} UPAR · HPUSM</small>
+      <small style="opacity:.6">© ${new Date().getFullYear()} UPAR · HPUSM<br>Developed by TUTI 2026</small>
     </section>
     <section class="login-form">
       <form id="fLogin" autocomplete="on" novalidate>

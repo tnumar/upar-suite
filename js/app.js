@@ -98,9 +98,14 @@ async function lalu() {
   try {
     const mod = await HALAMAN[k]();
     if (n !== giliran) return;
+    // bekas baharu bagi setiap navigasi: kerja tak segerak / pemasa halaman lama (cth penyelarasan Dashboard)
+    // akan menulis ke bekas yang sudah tertanggal, bukan ke halaman yang sedang dibuka.
     page.innerHTML = '';
+    const bekas = document.createElement('div');
+    bekas.className = 'page-v';
+    page.appendChild(bekas);
     scrollTo(0, 0);
-    await mod.papar(page, rest, { modul: m });
+    await mod.papar(bekas, rest, { modul: m });
   } catch (e) { console.error(e); page.innerHTML = `<div class="empty">${ic('alert')}<p>${esc(e.message || e)}</p></div>`; }
 }
 

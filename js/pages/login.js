@@ -12,7 +12,7 @@ export function papar(root, selesai) {
         <p>Unit Pendispensan Aseptik &amp; Radiofarmasi, Jabatan Farmasi HPUSM.</p>
         <div class="mods"><span>Dashboard</span><span>Guttae</span><span>Buku Off</span><span>Inventori</span><span>Formulari</span><span>Pergerakan Staf</span></div>
       </div>
-      <small style="opacity:.6">© ${new Date().getFullYear()} UPAR · HPUSM<br>Developed by TUTI 2026</small>
+      <small style="opacity:.6">© ${new Date().getFullYear()} UPAR · HPUSM</small>
     </section>
     <section class="login-form">
       <form id="fLogin" autocomplete="on" novalidate>
@@ -25,6 +25,7 @@ export function papar(root, selesai) {
         <p id="msg" class="small" style="color:var(--bad);min-height:20px;margin:0 0 8px"></p>
         <button class="btn pri" style="width:100%;height:46px" type="submit">Log masuk</button>
         <p class="small muted" style="margin-top:18px">Terlupa PIN? Hubungi Admin unit untuk reset PIN.</p>
+        <p class="kredit" style="margin-top:28px">Developed by TUTI 2026</p>
       </form>
     </section>
   </div>`;

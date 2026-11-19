@@ -114,6 +114,7 @@ function lukisBar() {
       <span class="spacer"></span>
       <div class="row pg-act">
         <button class="btn" data-kodinfo title="Maksud kod">${ic('info')}<span class="hide-s">Kod</span></button>
+        ${D && D.boleh.urus ? `<a class="btn" href="#/pergerakan/urus" title="Senarai induk kod kerja/shift, cuti & off, serta cuti umum">${ic('cog')}<span class="hide-s">Urus kod</span></a>` : ''}
         <button class="btn" data-menu aria-label="Lagi">${ic('more')}</button>
         <button class="btn pri" data-tambah>${ic('plus')}<span class="hide-s">Tambah</span></button>
       </div></div>
@@ -285,7 +286,7 @@ function pemilihKod(dipilih, berbilang) {
     const ks = aktif.filter((k) => k.jenis === j);
     return ks.length ? `<div class="kp-g"><small>${esc(JENIS[j])}</small><div class="kp-l">${ks.map((k) => `<button type="button" class="kp ${dipilih.includes(k.kod) ? 'on' : ''}" data-k="${esc(k.kod)}" style="--c:${esc(k.warna)}" aria-pressed="${dipilih.includes(k.kod)}">
       <b>${esc(k.kod)}</b><span>${esc(k.label)}${waktu(k) ? `<small>${esc(waktu(k))}</small>` : ''}</span></button>`).join('')}</div></div>` : '';
-  }).join('') + `<button type="button" class="btn sm" data-kodbaru>${ic('plus')} Kod tiada dalam senarai? Tambah kod baharu</button>`
+  }).join('') + `<div class="row" style="gap:8px"><button type="button" class="btn sm" data-kodbaru>${ic('plus')} Kod tiada dalam senarai? Tambah kod baharu</button>${D.boleh.urus ? `<a class="btn sm ghost" href="#/pergerakan/urus" data-tutup>${ic('cog')} Urus senarai kod</a>` : ''}</div>`
     + (berbilang ? '' : '');
 }
 function pasangPemilih(d, berbilang, dipilih) {

@@ -10,6 +10,7 @@ const TAB = [
   { k: 'jenama', nama: 'Jenama', ic: 'palette' },
   { k: 'tetapan', nama: 'Tetapan', ic: 'cog' },
   { k: 'senarai', nama: 'Senarai Rujukan', ic: 'list' },
+  { k: 'kodpergerakan', nama: 'Kod Pergerakan & Cuti Umum', ic: 'calendar' },
   { k: 'motivasi', nama: 'Kata Motivasi', ic: 'quote' },
   { k: 'templat', nama: 'Templat Emel', ic: 'mail' },
   { k: 'peranti', nama: 'Peranti Kiosk', ic: 'tv' },
@@ -31,6 +32,7 @@ export async function papar(page, rest) {
   page.innerHTML = `<div class="admin-nav chips">${TAB.map((t) => `<a class="chip ${t.k === k ? 'on' : ''}" href="#/admin/${t.k}" style="display:inline-flex;align-items:center;gap:6px">${esc(t.nama)}</a>`).join('')}</div><div id="adm"></div>`;
   const el = $('#adm', page);
   el.innerHTML = '<div class="skel" style="height:240px"></div>';
+  if (k === 'kodpergerakan') { location.hash = '#/pergerakan/urus'; return; }
   try { await ({ staf, jenama, tetapan, senarai, motivasi, templat, peranti, audit, migrasi })[k](el); }
   catch (e) { el.innerHTML = `<div class="empty">${ic('alert')}<p>${esc(e.message)}</p></div>`; }
 }

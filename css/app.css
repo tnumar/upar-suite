@@ -799,3 +799,7 @@ fieldset.inv-unit legend { font-size: 13px; font-weight: 700; color: var(--ink-2
 .login-form .in { text-align: center; }
 
 .kredit { margin: 8px 0 0; text-align: center; font-size: 11px; color: var(--muted); opacity: .8; }
+
+/* Tab Admin: balut ke baris baharu supaya semua tab kelihatan */
+.admin-nav { flex-wrap: wrap; overflow: visible; }
+.admin-nav .chip { flex: none; }

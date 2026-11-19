@@ -1,0 +1,21 @@
+{
+  "name": "UPAR Suite",
+  "short_name": "UPAR Suite",
+  "description": "Sistem bersepadu Unit Pendispensan Aseptik & Radiofarmasi, Jabatan Farmasi HPUSM.",
+  "lang": "ms",
+  "start_url": "./#/utama",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1e1b4b",
+  "theme_color": "#4f46e5",
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Formulari", "url": "./#/formulari", "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

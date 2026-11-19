@@ -19,7 +19,7 @@ export function papar(root, selesai) {
         <h2>Log masuk</h2>
         <p class="muted" style="margin:0 0 22px">Guna ID staf (atau emel) dan PIN anda.</p>
         <label class="field"><span>ID staf / emel</span>
-          <input class="in" name="sid" autocomplete="username" inputmode="text" autocapitalize="off" spellcheck="false" required value="${esc(idLepas)}" placeholder="cth 0209/07"></label>
+          <input class="in" name="sid" autocomplete="username" inputmode="text" autocapitalize="off" spellcheck="false" required value="${esc(idLepas)}"></label>
         <label class="field"><span>PIN</span>
           <input class="in pinbox" name="pin" type="password" autocomplete="current-password" inputmode="numeric" required placeholder="••••"></label>
         <p id="msg" class="small" style="color:var(--bad);min-height:20px;margin:0 0 8px"></p>

@@ -787,3 +787,13 @@ fieldset.inv-unit legend { font-size: 13px; font-weight: 700; color: var(--ink-2
 .kiosk-err { min-height: 100dvh; display: grid; place-content: center; text-align: center; padding: 20px; color: var(--muted); }
 .kiosk-err svg { width: 72px; height: 72px; margin: 0 auto 16px; }
 .kiosk-err h2 { color: var(--ink); }
+
+/* Log masuk: semua kandungan di tengah */
+.login-art { text-align: center; align-items: center; }
+.login-art > div { display: flex; flex-direction: column; align-items: center; }
+.login-art .hero-logo { margin-left: auto; margin-right: auto; }
+.login-art p { margin-left: auto; margin-right: auto; }
+.login-art .mods { justify-content: center; }
+.login-form form { text-align: center; }
+.login-form .field > span { text-align: center; }
+.login-form .in { text-align: center; }

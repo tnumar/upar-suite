@@ -19,9 +19,11 @@ const MODUL = [
   { k: 'guttae', nama: 'Guttae', ic: 'drop', hash: '#/guttae' },
   { k: 'bukuoff', nama: 'Buku Off', ic: 'calendar', hash: '#/bukuoff' },
   { k: 'inventori', nama: 'Inventori', ic: 'box', hash: '#/inventori' },
-  { k: 'formulari', nama: 'Formulari', ic: 'flask', hash: '#/formulari', semua: true }
+  { k: 'formulari', nama: 'Formulari', ic: 'flask', hash: '#/formulari', semua: true },
+  { k: 'uat', nama: 'UAT (Ujian)', pendek: 'UAT', ic: 'check', hash: '#/uat', semua: true, ujian: true }
 ];
-const boleh = (m) => m.semua || S.ada(m.k);
+const persekitaran = () => (window.UPAR_CONFIG || {}).PERSEKITARAN || '';
+const boleh = (m) => (m.ujian ? persekitaran() !== 'PRODUKSI' : true) && (m.semua || S.ada(m.k));
 
 const HALAMAN = {
   utama: () => import('./pages/home.js'),
@@ -30,7 +32,8 @@ const HALAMAN = {
   profil: () => import('./pages/profil.js'),
   pergerakan: () => import('./pages/pergerakan.js'),
   dashboard: () => import('./pages/dashboard.js'), guttae: () => import('./pages/guttae.js'),
-  bukuoff: () => import('./pages/bukuoff.js'), inventori: () => import('./pages/inventori.js')
+  bukuoff: () => import('./pages/bukuoff.js'), inventori: () => import('./pages/inventori.js'),
+  uat: () => import('./pages/uat.js')
 };
 
 /* ---------- jenama ---------- */
@@ -49,7 +52,7 @@ function lukisRangka() {
   const nav = MODUL.filter(boleh);
   const navHtml = nav.map((m) => `<a href="${m.hash}" data-nav="${m.k}">${ic(m.ic)}<span>${esc(m.nama)}</span>${m.fasa ? '<span class="soon">Fasa ' + m.fasa + '</span>' : ''}</a>`).join('');
   const adminHtml = S.ada('suite', ['ADMIN']) ? `<h6>Pentadbiran</h6><a href="#/admin" data-nav="admin">${ic('shield')}<span>Admin</span></a>` : '';
-  const botNav = nav.filter((m) => !m.fasa).slice(0, 3).concat(nav.filter((m) => m.fasa).slice(0, 1));
+  const botNav = nav.filter((m) => !m.fasa && !m.ujian).slice(0, 3).concat(nav.filter((m) => m.fasa).slice(0, 1));
   $('#app').innerHTML = `
   <div class="shell">
     <aside class="side">

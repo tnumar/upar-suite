@@ -803,3 +803,16 @@ fieldset.inv-unit legend { font-size: 13px; font-weight: 700; color: var(--ink-2
 /* Tab Admin: balut ke baris baharu supaya semua tab kelihatan */
 .admin-nav { flex-wrap: wrap; overflow: visible; }
 .admin-nav .chip { flex: none; }
+
+/* ---------- UAT ---------- */
+.uat-bar { height: 8px; border-radius: 99px; background: var(--line-2); overflow: hidden; margin-top: 10px; }
+.uat-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--brand), var(--brand-2)); transition: width .3s; }
+.uat-h { margin: 22px 0 10px; font-size: 15px; }
+.uat-kad { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.uat-kad.lulus { border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); }
+.uat-kad.gagal { border-color: color-mix(in srgb, var(--bad) 55%, var(--line)); background: color-mix(in srgb, var(--bad-soft) 60%, var(--surface)); }
+.uat-atas { display: flex; align-items: center; gap: 8px; }
+.uat-id { font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px; background: var(--brand-soft); color: var(--brand); }
+.uat-cat { margin-top: 8px; height: auto; min-height: 0; padding-block: 8px; resize: vertical; font-size: 13px; }
+.btn.ok-on { background: var(--ok); color: #fff; border-color: var(--ok); }
+.btn.bad-on { background: var(--bad); color: #fff; border-color: var(--bad); }

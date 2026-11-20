@@ -4,6 +4,7 @@ import { api } from '../api.js';
 import { $, $$, esc, toast, ralat, sibuk, dialog, sahkan, salin, debounce, masaRingkas } from '../ui.js';
 import { ic } from '../icons.js';
 import { seni } from '../art.js';
+import { SENARIO, KUMPULAN } from '../uat-senario.js';
 
 const TAB = [
   { k: 'staf', nama: 'Pengguna & Peranan', ic: 'users' },
@@ -15,7 +16,8 @@ const TAB = [
   { k: 'templat', nama: 'Templat Emel', ic: 'mail' },
   { k: 'peranti', nama: 'Peranti Kiosk', ic: 'tv' },
   { k: 'audit', nama: 'Log Audit', ic: 'log' },
-  { k: 'migrasi', nama: 'Sandaran & Migrasi', ic: 'db' }
+  { k: 'migrasi', nama: 'Sandaran & Migrasi', ic: 'db' },
+  { k: 'uat', nama: 'Keputusan UAT', ic: 'check' }
 ];
 const MODUL = [
   ['suite', 'Admin Suite', ['ADMIN']], ['formulari', 'Formulari', ['EDITOR', 'PEMBACA']], ['bukuoff', 'Buku Off', ['ADMIN', 'PENYELIA', 'STAF']],
@@ -33,7 +35,7 @@ export async function papar(page, rest) {
   const el = $('#adm', page);
   el.innerHTML = '<div class="skel" style="height:240px"></div>';
   if (k === 'kodpergerakan') { location.hash = '#/pergerakan/urus'; return; }
-  try { await ({ staf, jenama, tetapan, senarai, motivasi, templat, peranti, audit, migrasi })[k](el); }
+  try { await ({ staf, jenama, tetapan, senarai, motivasi, templat, peranti, audit, migrasi, uat })[k](el); }
   catch (e) { el.innerHTML = `<div class="empty">${ic('alert')}<p>${esc(e.message)}</p></div>`; }
 }
 
@@ -303,4 +305,36 @@ async function migrasi(el) {
       } catch (err) { ralat(err); }
     });
   };
+}
+
+/* ================= Keputusan UAT ================= */
+async function uat(el) {
+  const d = await api('uat.semua');
+  const nm = (id) => (d.staf.find((s) => s.stafId === id) || { nama: id }).nama;
+  const ikut = {}; d.rekod.forEach((r) => { (ikut[r.senario] = ikut[r.senario] || []).push(r); });
+  const gagal = d.rekod.filter((r) => r.status === 'GAGAL');
+  const catatan = d.rekod.filter((r) => r.status !== 'GAGAL' && r.catatan);
+  const perStaf = d.staf.map((s) => {
+    const rs = d.rekod.filter((r) => r.stafId === s.stafId && r.status);
+    return { ...s, siap: rs.length, gagal: rs.filter((r) => r.status === 'GAGAL').length, akhir: rs.map((r) => r.masa).sort().pop() || '' };
+  }).sort((a, b) => b.siap - a.siap || a.nama.localeCompare(b.nama));
+  const tajukS = (id) => { const x = SENARIO.find((s) => s.id === id); return x ? x.tajuk : id; };
+  const baris = (r) => `<tr><td><span class="badge grey">${esc(r.senario)}</span></td><td><b>${esc(tajukS(r.senario))}</b><div class="small muted">${esc(nm(r.stafId))} · ${esc(masaRingkas(r.masa))}</div></td><td class="small" style="white-space:pre-wrap">${esc(r.catatan) || '<span class="muted">—</span>'}</td></tr>`;
+  el.innerHTML = `
+  <div class="grid g2" style="align-items:start">
+    <section class="card pad"><h3 style="margin:0 0 6px;font-size:16px">Ringkasan</h3>
+      <p class="small muted" style="margin:0 0 12px">Staf yang sudah menguji: <b>${perStaf.filter((s) => s.siap).length} / ${perStaf.length}</b> · Keputusan direkod: <b>${d.rekod.filter((r) => r.status).length}</b> · Gagal: <b style="color:var(--bad)">${gagal.length}</b></p>
+      <div class="scroll-x"><table class="tbl"><thead><tr><th>Staf</th><th style="text-align:right">Diuji</th><th style="text-align:right">Gagal</th></tr></thead><tbody>
+      ${perStaf.map((s) => `<tr><td>${esc(s.nama)}<div class="small muted">${esc(s.stafId)}${s.logMasukAkhir ? '' : ' · belum log masuk'}</div></td><td style="text-align:right">${s.siap}</td><td style="text-align:right">${s.gagal ? `<span class="badge bad">${s.gagal}</span>` : '0'}</td></tr>`).join('')}
+      </tbody></table></div></section>
+    <section class="card pad"><h3 style="margin:0 0 12px;font-size:16px">Ikut senario</h3>
+      <div class="scroll-x"><table class="tbl"><thead><tr><th>Senario</th><th style="text-align:right">Lulus</th><th style="text-align:right">Gagal</th></tr></thead><tbody>
+      ${KUMPULAN.map((g) => SENARIO.filter((x) => x.modul === g.modul).map((x) => { const rs = ikut[x.id] || []; const l = rs.filter((r) => r.status === 'LULUS').length, f = rs.filter((r) => r.status === 'GAGAL').length;
+        return `<tr><td><span class="badge grey">${esc(x.id)}</span> ${esc(x.tajuk)}</td><td style="text-align:right">${l || '<span class="muted">0</span>'}</td><td style="text-align:right">${f ? `<span class="badge bad">${f}</span>` : '<span class="muted">0</span>'}</td></tr>`; }).join('')).join('')}
+      </tbody></table></div></section>
+  </div>
+  <section class="card pad" style="margin-top:16px"><h3 style="margin:0 0 12px;font-size:16px;color:var(--bad)">Senario gagal (${gagal.length})</h3>
+    ${gagal.length ? `<div class="scroll-x"><table class="tbl"><tbody>${gagal.map(baris).join('')}</tbody></table></div>` : '<p class="muted small" style="margin:0">Tiada lagi.</p>'}</section>
+  <section class="card pad" style="margin-top:16px"><h3 style="margin:0 0 12px;font-size:16px">Catatan & cadangan (${catatan.length})</h3>
+    ${catatan.length ? `<div class="scroll-x"><table class="tbl"><tbody>${catatan.map(baris).join('')}</tbody></table></div>` : '<p class="muted small" style="margin:0">Tiada lagi.</p>'}</section>`;
 }

@@ -12,7 +12,7 @@ const WARNA_KAT = ['#0ea5e9', '#db2777', '#d97706', '#10b981', '#8b5cf6', '#ef44
 const LAPORAN = [
   ['baki', 'Baki stok semasa'], ['minimum', 'Stok di bawah paras minimum'], ['perancangan', 'Perancangan stok (min / menokok / maks)'], ['luput', 'Item luput & hampir luput'],
   ['penerimaan', 'Penerimaan stok'], ['pengeluaran', 'Penggunaan stok'], ['lupus', 'Pelupusan stok'], ['pelarasan', 'Pelarasan (kiraan stok)'],
-  ['bulanan', 'Penggunaan bulanan'], ['tahunan', 'Rumusan stok tahunan'], ['item', 'Sejarah transaksi satu item'], ['analisis', 'Analisis tahunan (graf)']
+  ['bulanan', 'Penggunaan bulanan'], ['tahunan', 'Rumusan stok tahunan'], ['item', 'Sejarah transaksi satu item'], ['staf', 'Aktiviti staf'], ['analisis', 'Analisis tahunan (graf)']
 ];
 const CDN = { qr: 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js', bar: 'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js', zxing: 'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js' };
 
@@ -291,7 +291,7 @@ async function butiranItem(kod, tahun) {
     <div class="h5">Sejarah transaksi${r.jumlahSejarah > r.sejarah.length ? ` (${r.sejarah.length} terkini daripada ${r.jumlahSejarah})` : ''}</div>
     <div class="scroll-x"><table class="tbl"><thead><tr><th>Tarikh</th><th>Jenis</th><th style="text-align:right">Kuantiti</th><th>Luput / kelompok</th><th>Oleh / catatan</th><th></th></tr></thead><tbody>${r.sejarah.map((t) => `<tr${t.status === 'DIBATALKAN' ? ' style="opacity:.5;text-decoration:line-through"' : ''}>
       <td class="small" style="white-space:nowrap">${esc(dmy(t.tarikh))}</td><td>${bdg(JTX[t.jenisTx] || [t.jenisTx, 'grey'])}${t.semakan ? ' <span class="badge warn" title="' + esc(t.semakan) + '">Semak</span>' : ''}</td><td style="text-align:right;white-space:nowrap"><b>${esc(fq(t.qty, s))}</b></td>
-      <td class="small">${esc(t.luput ? (/^\d{4}-/.test(t.luput) ? dmy(t.luput) : t.luput) : '—')}</td><td class="small">${esc(t.olehNama)}${t.pembekal ? ` · ${esc(t.pembekal)}` : ''}${t.noDO ? ` · DO ${esc(t.noDO)}` : ''}${t.catatan ? `<div class="muted">${esc(t.catatan)}</div>` : ''}</td>
+      <td class="small">${esc(t.luput ? (/^\d{4}-/.test(t.luput) ? dmy(t.luput) : t.luput) : '—')}</td><td class="small">${esc(t.olehNama)}${t.pembekal ? ` · ${esc(t.pembekal)}` : ''}${t.noDO ? ` · DO ${esc(t.noDO)}` : ''}${t.catatan ? `<div class="muted">${esc(t.catatan)}</div>` : ''}${diubah(t)}</td>
       <td>${t.boleh ? `<button class="btn ghost icon" data-tx="${esc(t.id)}" aria-label="Ubah">${ic('edit')}</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="6" class="muted">Tiada transaksi.</td></tr>'}</tbody></table></div>`;
   const kaki = document.createElement('div');
   kaki.className = 'dlg-f';
@@ -489,7 +489,7 @@ async function lTx(el) {
         <td><b>${esc(x.desk || x.kod)}</b><div class="small muted">${esc(x.kod)} ${x.kategori ? katChip(x.kategori) : ''}</div></td><td>${bdg(JTX[x.jenisTx] || [x.jenisTx, 'grey'])}${x.semakan ? ` <span class="badge warn" title="${esc(x.semakan)}">Semak</span>` : ''}</td>
         <td style="text-align:right;white-space:nowrap"><b>${esc(x.q)}</b></td>
         <td class="small">${esc(x.luput ? (/^\d{4}-/.test(x.luput) ? dmy(x.luput) : x.luput) : t.jenis === 'I' ? 'Auto (FEFO)' : '—')}${x.pembekal ? `<div class="muted">${esc(x.pembekal)}${x.noDO ? ' · DO ' + esc(x.noDO) : ''}</div>` : ''}</td>
-        <td class="small">${esc(x.olehNama)}${x.status === 'DIBATALKAN' ? ' <span class="badge grey">Dibatalkan</span>' : ''}${x.catatan ? `<div class="muted">${esc(x.catatan)}</div>` : ''}</td>
+        <td class="small">${esc(x.olehNama)}${x.status === 'DIBATALKAN' ? ' <span class="badge grey">Dibatalkan</span>' : ''}${x.catatan ? `<div class="muted">${esc(x.catatan)}</div>` : ''}${diubah(x)}</td>
         <td>${x.boleh ? `<button class="btn ghost icon" data-ubah="${esc(x.id)}" aria-label="Ubah">${ic('edit')}</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="7" class="muted">Tiada rekod.</td></tr>';
       $('#tc', el).textContent = `${r.jumlah} rekod · halaman ${t.hal + 1} / ${Math.max(1, Math.ceil(r.jumlah / r.saiz))}`;
       $('#tp', el).disabled = t.hal === 0; $('#tn', el).disabled = (t.hal + 1) * r.saiz >= r.jumlah;
@@ -656,14 +656,19 @@ async function imbas(apabila) {
 }
 
 /* ============================ LAPORAN ============================ */
-const lap = { jenis: 'baki', q: '', dari: '', hingga: '', tahun: '', status: '', kod: '', lokasi: '' };
+const lap = { jenis: 'baki', q: '', dari: '', hingga: '', tahun: '', status: '', kod: '', lokasi: '', staf: '' };
+let stafLap = []; // pilihan staf (diisi daripada laporan aktiviti staf)
 let hasilLap = null;
+// "Diubah / dibatalkan oleh" — hanya jika berbeza daripada perekod asal atau diubah selepas direkod.
+const diubah = (x) => (x.dikemaskiniOleh && (x.dikemaskiniOleh !== x.olehNama || (x.dikemaskiniPada && x.masa && x.dikemaskiniPada.slice(0, 16) !== x.masa.slice(0, 16)))
+  ? `<div class="muted">${x.status === 'DIBATALKAN' ? 'Dibatalkan' : 'Diubah'} oleh ${esc(x.dikemaskiniOleh)}${x.dikemaskiniPada ? ' · ' + esc(masaRingkas(x.dikemaskiniPada)) : ''}</div>` : '');
 // Papar tarikh ISO (yyyy-mm-dd) sebagai dd/mm/yyyy dalam jadual, cetakan & Excel.
-const tarikhLap = (r) => { if (r && typeof r.subtajuk === 'string') r.subtajuk = r.subtajuk.replace(/(\d{4})-(\d{2})-(\d{2})/g, '$3/$2/$1'); if (r && Array.isArray(r.baris)) r.baris = r.baris.map((b) => (Array.isArray(b) ? b.map((v) => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v.split('-').reverse().join('/') : v)) : b)); return r; };
+const tarikhLap = (r) => { if (r && typeof r.subtajuk === 'string') r.subtajuk = r.subtajuk.replace(/(\d{4})-(\d{2})-(\d{2})/g, '$3/$2/$1'); if (r && Array.isArray(r.baris)) r.baris = r.baris.map((b) => (Array.isArray(b) ? b.map((v) => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}( \d{2}:\d{2})?$/.test(v) ? v.slice(0, 10).split('-').reverse().join('/') + v.slice(10) : v)) : b)); return r; };
 function lLaporan(el) {
-  const j = lap.jenis, perluTempoh = ['penerimaan', 'pengeluaran', 'lupus', 'pelarasan', 'item', 'bulanan'].includes(j), perluTahun = ['tahunan', 'analisis'].includes(j);
+  const j = lap.jenis, perluTempoh = ['penerimaan', 'pengeluaran', 'lupus', 'pelarasan', 'item', 'bulanan', 'staf'].includes(j), perluTahun = ['tahunan', 'analisis'].includes(j);
   el.innerHTML = `<section class="card pad"><div class="grid inv-lapf">
-      <label class="field"><span>Laporan</span><select class="in" id="lJ">${LAPORAN.map(([k, n]) => `<option value="${k}" ${k === j ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+      <label class="field"><span>Laporan</span><select class="in" id="lJ">${LAPORAN.filter(([k]) => k !== 'staf' || D.boleh.urus).map(([k, n]) => `<option value="${k}" ${k === j ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+      ${j === 'staf' ? `<label class="field"><span>Staf</span><select class="in" id="lSt"><option value="">Semua staf (ringkasan)</option>${stafLap.map((x) => `<option value="${esc(x.k)}" ${lap.staf === x.k ? 'selected' : ''}>${esc(x.nama)}</option>`).join('')}</select></label>` : ''}
       ${j === 'item' ? pilihItemHTML(lap.kod, 'Item') : `<label class="field"><span>Cari kod / deskripsi</span><input class="in" id="lQ" value="${esc(lap.q)}"></label>`}
       ${D.lokasi.length && j !== 'item' ? `<label class="field"><span>Lokasi</span><select class="in" id="lL"><option value="">Semua</option>${D.lokasi.map((l) => `<option ${lap.lokasi === l.nilai ? 'selected' : ''}>${esc(l.nilai)}</option>`).join('')}</select></label>` : ''}
       ${perluTempoh ? `<label class="field"><span>Dari</span><input class="in" type="date" id="lD" value="${lap.dari}"></label><label class="field"><span>Hingga</span><input class="in" type="date" id="lH" value="${lap.hingga}"></label>` : ''}
@@ -682,13 +687,14 @@ function lLaporan(el) {
     if ($('#lH', el)) lap.hingga = $('#lH', el).value;
     if ($('#lT', el)) lap.tahun = $('#lT', el).value;
     if ($('#lS', el)) lap.status = $('#lS', el).value;
+    if ($('#lSt', el)) lap.staf = $('#lSt', el).value;
   };
   $('#lJ', el).onchange = () => { baca(); hasilLap = null; lap.status = ''; lLaporan(el); };
   const im = $('[data-imbas]', el); if (im) im.onclick = () => imbas((k) => { $('[name=item]', el).value = `${k} — ${itemOf(k).desk}`; });
   $('#lGo', el).onclick = (e) => sibuk(e.currentTarget, async () => {
     baca();
     if (lap.jenis === 'item' && !lap.kod) return toast('Pilih item', 'bad');
-    try { hasilLap = tarikhLap(await api('inventori.laporan', { ...lap, kategori: kat })); lLaporan(el); } catch (err) { ralat(err); }
+    try { hasilLap = tarikhLap(await api('inventori.laporan', { ...lap, kategori: kat })); if (hasilLap.pilihanStaf) stafLap = hasilLap.pilihanStaf; lLaporan(el); } catch (err) { ralat(err); }
   });
   $('#lPr', el).onclick = () => (hasilLap.jenis === 'analisis' ? cetakHTML(hasilLap.tajuk, '', paparLap(hasilLap)) : cetakJadual(hasilLap.tajuk, hasilLap.subtajuk, hasilLap.lajur.map((c) => c.l), hasilLap.baris, hasilLap.kaki, hasilLap.lajur));
   $('#lXl', el).onclick = () => excelLap(hasilLap);

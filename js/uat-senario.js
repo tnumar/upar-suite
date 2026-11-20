@@ -43,6 +43,7 @@ export const SENARIO = [
   { id: 'I7', modul: 'inventori', peranan: ['ADMIN', 'PENGURUS'], tajuk: 'Cetak label', langkah: 'Cetak label item pada pelekat 100mm × 50mm.', jangka: 'Label muat pada pelekat; kod bar/QR boleh diimbas.' },
   { id: 'I8', modul: 'inventori', tajuk: 'Kiraan stok', langkah: 'Tab Kiraan stok → mula kiraan, isi kiraan fizikal beberapa item.', jangka: 'Perbezaan dipaparkan; admin boleh sahkan pelarasan.' },
   { id: 'I9', modul: 'inventori', tajuk: 'Ringkasan & laporan', langkah: 'Buka tab Ringkasan dan Laporan; cuba eksport.', jangka: 'Stok rendah/hampir luput dan laporan betul.' },
+  { id: 'I10', modul: 'inventori', peranan: ['ADMIN', 'PENGURUS'], tajuk: 'Aktiviti staf', langkah: 'Laporan → Aktiviti staf → Jana (ringkasan). Pilih seorang staf → Jana. Semak juga tab Transaksi untuk rekod yang diubah / dibatalkan.', jangka: 'Bilangan transaksi setiap staf betul; senarai staf menunjukkan siapa terima / keluar / lupus, termasuk siapa yang mengubah atau membatalkan.' },
 
   { id: 'D1', modul: 'dashboard', peranan: ['ADMIN', 'STAF'], tajuk: 'Preskripsi baharu', langkah: 'Klik + Preskripsi → pilih jenis (TPN/IVA/Kemo), wad, katil, sediaan → Simpan.', jangka: 'Kad preskripsi muncul pada papan.' },
   { id: 'D2', modul: 'dashboard', peranan: ['ADMIN', 'STAF'], tajuk: 'Gerakkan status', langkah: 'Gerakkan preskripsi dari Diterima hingga Sedia diambil.', jangka: 'Status, masa dan TAT dikemas kini.' },

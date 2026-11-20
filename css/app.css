@@ -816,3 +816,61 @@ fieldset.inv-unit legend { font-size: 13px; font-weight: 700; color: var(--ink-2
 .uat-cat { margin-top: 8px; height: auto; min-height: 0; padding-block: 8px; resize: vertical; font-size: 13px; }
 .btn.ok-on { background: var(--ok); color: #fff; border-color: var(--ok); }
 .btn.bad-on { background: var(--bad); color: #fff; border-color: var(--bad); }
+
+/* ============ Penambahbaikan ============ */
+.pb-alat .in { height: 40px; }
+.pb-alat .chip { height: 40px; display: inline-flex; align-items: center; gap: 6px; }
+.pb-alat .chip svg { width: 15px; height: 15px; }
+.pb-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); }
+.pb-kad .small span { display: inline-flex; align-items: center; gap: 5px; }
+.pb-kad .small svg { width: 14px; height: 14px; }
+.pb-kad { display: flex; flex-direction: column; }
+.pb-t { font-size: 15px; line-height: 1.35; }
+.pb-ss { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+.pb-ss > div { background: var(--surface-2); border-radius: 10px; padding: 8px 10px; }
+.pb-ss small { display: block; font-weight: 700; color: var(--muted); text-transform: uppercase; font-size: 10.5px; letter-spacing: .04em; }
+.pb-ss p { margin: 4px 0 0; font-size: 13px; }
+.pb-ss.besar p { font-size: 14px; }
+@media (max-width: 560px) { .pb-ss { grid-template-columns: 1fr; } }
+.pb-gal { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 12px; }
+.pb-gal figure { margin: 0; }
+.pb-gal img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 10px; background: var(--surface-2); }
+.pb-gal figcaption { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.pb-gedit { display: grid; gap: 8px; }
+.pb-gi { display: grid; grid-template-columns: 64px 1fr auto; gap: 8px; align-items: center; }
+.pb-gi img { width: 64px; height: 48px; object-fit: cover; border-radius: 8px; background: var(--surface-2); }
+.pb-pilih { display: grid; gap: 6px; max-height: 55vh; overflow: auto; }
+.pb-pi { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 10px 12px; cursor: pointer; color: inherit; font: inherit; }
+.pb-pi:hover { border-color: var(--brand); }
+.pb-pi small { display: block; color: var(--muted); margin-top: 3px; }
+@media print {
+  @page pbkk { size: A4 portrait; margin: 22mm 25mm; }
+  @page pblap { size: A4 landscape; margin: 12mm 14mm; }
+  body.cetak-pbkk #cetak { page: pbkk; font: 11pt/1.5 Arial, sans-serif; }
+  body.cetak-pblap #cetak { page: pblap; font: 9pt/1.35 Arial, sans-serif; }
+  .kk-h { text-align: center; margin-bottom: 18px; }
+  .kk-h b { display: block; font-size: 12pt; }
+  .kk-pr { margin: 0 0 14px; }
+  .kk h4 { font-size: 11pt; margin: 14px 0 4px; }
+  .kk p { margin: 0; text-align: justify; }
+  .kk-g { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; margin-top: 4px; }
+  .kk-g figure { margin: 0; break-inside: avoid; }
+  .kk-g img { width: 100%; max-height: 70mm; object-fit: contain; border: 1px solid #ccc; }
+  .kk-g figcaption { font-size: 9pt; text-align: center; margin-top: 2px; }
+  .kk-t { width: 100%; margin-top: 18mm; border-collapse: collapse; break-inside: avoid; }
+  .kk-t td { width: 50%; vertical-align: top; padding: 0; }
+  .kk-t .kk-sl td { padding-top: 14mm; }
+  .lp-logo { height: 15mm; display: block; margin-bottom: 3mm; }
+  .lp-h { text-align: center; margin-bottom: 4mm; }
+  .lp-h b { display: block; font-size: 11pt; }
+  .lp-t { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .lp-t th, .lp-t td { border: 1px solid #000; padding: 3px 5px; vertical-align: top; text-align: left; }
+  .lp-t th { text-align: center; font-weight: 700; background: #e5e7eb; }
+  .lp-t td.c { text-align: center; }
+  .lp-t tr { break-inside: avoid; }
+  .lp-asp td { font-weight: 700; background: #f1f5f9; }
+  .lp-g { display: flex; flex-wrap: wrap; gap: 2mm; margin-top: 2mm; }
+  .lp-g img { height: 22mm; max-width: 32mm; object-fit: cover; border: 1px solid #ccc; }
+  .lp-k { margin-top: 8mm; break-inside: avoid; }
+  .lp-k p { margin: 0; }
+}

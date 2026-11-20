@@ -8,6 +8,7 @@ export const KUMPULAN = [
   { modul: 'dashboard', nama: 'Dashboard' },
   { modul: 'guttae', nama: 'Guttae' },
   { modul: 'formulari', nama: 'Formulari', semua: true },
+  { modul: 'penambahbaikan', nama: 'Penambahbaikan', semua: true },
   { modul: 'suite', nama: 'Admin', peranan: ['ADMIN'] }
 ];
 
@@ -60,6 +61,9 @@ export const SENARIO = [
   { id: 'F1', modul: 'formulari', tajuk: 'Cari formulasi', langkah: 'Cari formulasi dan buka butirannya.', jangka: 'Maklumat lengkap dan sama dengan IVA Formulary lama.' },
   { id: 'F2', modul: 'formulari', peranan: ['EDITOR'], tajuk: 'Ubah formulasi', langkah: 'Ubah satu formulasi, simpan dan lihat sejarah versi.', jangka: 'Versi baharu direkod; versi lama boleh dipulihkan.' },
 
+  { id: 'N1', modul: 'penambahbaikan', tajuk: 'Rekod penambahbaikan', langkah: 'Penambahbaikan → Rekod penambahbaikan → isi aspek, perihal, sebelum, selepas → tambah 2 gambar → Simpan.', jangka: 'Rekod dipaparkan dengan gambar; boleh diubah dan dipadam oleh anda.' },
+  { id: 'N2', modul: 'penambahbaikan', tajuk: 'Kertas kerja', langkah: 'Klik Kertas kerja → pilih satu penambahbaikan → semak draf automatik, betulkan → Simpan & cetak.', jangka: 'Kertas kerja A4 tegak dengan Projek, Permasalahan, Cadangan, Implikasi, gambar & ruang tandatangan; suntingan disimpan.' },
+  { id: 'N3', modul: 'penambahbaikan', tajuk: 'Cetak laporan', langkah: 'Klik Cetak laporan → pilih tempoh (cth Januari hingga Jun) → Cetak.', jangka: 'Laporan A4 melintang ikut aspek: Bil, Jenis/Perihal, Sebelum, Selepas dan Diselaraskan oleh.' },
   { id: 'A1', modul: 'suite', tajuk: 'Urus staf', langkah: 'Tambah staf ujian, ubah peranan, kemudian nyahaktifkan.', jangka: 'ID tidak boleh diubah selepas disimpan; staf tidak aktif tidak boleh log masuk.' },
   { id: 'A2', modul: 'suite', tajuk: 'Tetapan', langkah: 'Ubah satu tetapan masa (HH:MM) dan simpan.', jangka: 'Nilai kekal HH:MM selepas simpan.' },
   { id: 'A3', modul: 'suite', tajuk: 'Kod pergerakan & cuti umum', langkah: 'Tambah/ubah kod pergerakan; masukkan cuti umum secara pukal.', jangka: 'Dipaparkan pada kalendar Pergerakan.' },

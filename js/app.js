@@ -20,6 +20,7 @@ const MODUL = [
   { k: 'bukuoff', nama: 'Buku Off', ic: 'calendar', hash: '#/bukuoff' },
   { k: 'inventori', nama: 'Inventori', ic: 'box', hash: '#/inventori' },
   { k: 'formulari', nama: 'Formulari', ic: 'flask', hash: '#/formulari', semua: true },
+  { k: 'penambahbaikan', nama: 'Penambahbaikan', ic: 'bulb', hash: '#/penambahbaikan', semua: true },
   { k: 'uat', nama: 'UAT (Ujian)', pendek: 'UAT', ic: 'check', hash: '#/uat', semua: true, ujian: true }
 ];
 const persekitaran = () => (window.UPAR_CONFIG || {}).PERSEKITARAN || '';
@@ -33,7 +34,8 @@ const HALAMAN = {
   pergerakan: () => import('./pages/pergerakan.js'),
   dashboard: () => import('./pages/dashboard.js'), guttae: () => import('./pages/guttae.js'),
   bukuoff: () => import('./pages/bukuoff.js'), inventori: () => import('./pages/inventori.js'),
-  uat: () => import('./pages/uat.js')
+  uat: () => import('./pages/uat.js'),
+  penambahbaikan: () => import('./pages/penambahbaikan.js')
 };
 
 /* ---------- jenama ---------- */

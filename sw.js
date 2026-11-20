@@ -1,11 +1,11 @@
 /* Service worker UPAR Suite: cache rangka app supaya boleh dibuka tanpa internet.
  * Tukar VERSI setiap kali fail web dikemas kini supaya pengguna menerima versi baharu. */
-const VERSI = 'upar-v1.5.9';
+const VERSI = 'upar-v1.6.0';
 const RANGKA = [
   './', 'index.html', 'config.js', 'manifest.webmanifest', 'css/app.css',
   'js/app.js', 'js/api.js', 'js/ui.js', 'js/art.js', 'js/icons.js',
-  'js/pages/login.js', 'js/pages/home.js', 'js/pages/formulari.js', 'js/pages/admin.js', 'js/pages/profil.js', 'js/pages/pergerakan.js', 'js/pages/bukuoff.js', 'js/pages/inventori.js', 'js/pages/dashboard.js', 'js/pages/guttae.js', 'js/pages/kiosk.js', 'js/pages/soon.js', 'js/pages/uat.js', 'js/uat-senario.js',
-  'assets/logo.svg', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png', 'assets/icons/maskable-192.png', 'assets/icons/favicon-32.png'
+  'js/pages/login.js', 'js/pages/home.js', 'js/pages/formulari.js', 'js/pages/admin.js', 'js/pages/profil.js', 'js/pages/pergerakan.js', 'js/pages/bukuoff.js', 'js/pages/inventori.js', 'js/pages/dashboard.js', 'js/pages/guttae.js', 'js/pages/kiosk.js', 'js/pages/soon.js', 'js/pages/uat.js', 'js/uat-senario.js', 'js/pages/penambahbaikan.js',
+  'assets/logo.svg', 'assets/logo-usm.jpg', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png', 'assets/icons/maskable-192.png', 'assets/icons/favicon-32.png'
 ];
 
 self.addEventListener('install', (e) => {

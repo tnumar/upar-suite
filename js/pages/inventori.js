@@ -170,7 +170,7 @@ function kadItem(s) {
   return `<article class="inv-kad ${s.aktif ? '' : 'off'}" data-buka="${esc(s.kod)}">
     <div class="inv-kad-f">${fotoHTML(s)}${s.lokasi ? `<span class="inv-lok">${ic('pin')}${esc(s.lokasi)}</span>` : ''}</div>
     <div class="inv-kad-b"><b class="inv-kad-n">${esc(s.desk)}</b><small class="muted">${esc(s.kod)}${s.kodHospital ? ' · ' + esc(s.kodHospital) : ''}</small>
-      <div class="inv-kad-q"><b class="${s.baki <= 0 ? 'bad' : ''}">${esc(fq(s.baki, s))}</b>${s.isiPek > 1 ? `<small>${s.baki} ${esc(s.unit)}</small>` : ''}</div>${bar(s)}
+      <div class="inv-kad-q"><b class="${s.baki <= 0 ? 'bad' : ''}">${esc(fq(s.baki, s))}</b>${s.isiPek > 1 && Math.abs(s.baki) >= s.isiPek ? `<small>${s.baki} ${esc(s.unit)}</small>` : ''}</div>${bar(s)}
       <div class="inv-kad-t">${katChip(s.kategori)}${s.stok !== 'cukup' ? bdg(STOK[s.stok]) : ''}${lp ? bdg(LUPUT[lp]) : ''}${s.perluTempah ? '<span class="badge">Tempah</span>' : ''}</div></div>
     ${D.boleh.tulis && s.aktif && (s.baki > 0 || D.tetapan.negatif || dlm) ? `<div class="inv-kad-k">${dlm ? `<button class="btn icon sm" data-kurang="${esc(s.kod)}" aria-label="Kurang">−</button><span class="inv-dlm">${esc(fq(dlm, s))}</span>` : `<span class="small muted">${langkah > 1 ? `+1 ${esc(s.unitPek)}` : 'Keluar'}</span>`}
       <button class="btn icon sm pri" data-tambah="${esc(s.kod)}" aria-label="Tambah ke bakul">${ic('plus')}</button></div>` : ''}</article>`;
@@ -570,7 +570,8 @@ function lKiraanSatu(el, k) {
   $('#kCetak', el).onclick = () => cetakJadual(`Borang Kiraan Stok ${k.id}`, `${dmy(k.tarikh)} · ${k.skop}`, ['Item', 'Kod', 'Lokasi', 'Sistem', 'Kiraan fizikal', 'Catatan'], rows.map((b) => [b.s.desk, b.kod, b.s.lokasi || '', fq(b.sistem, b.s), b.fizikal == null ? '' : fq(b.fizikal, b.s), b.catatan || '']));
   const on = (sel, fn) => { const b = $(sel, el); if (b) b.onclick = fn; };
   on('#kSimpan', (e) => sibuk(e.currentTarget, async () => { try { lKiraanSatu(el, await api('inventori.kiraanSimpan', { id: k.id, baris: data() })); toast('Draf disimpan', 'ok'); } catch (err) { ralat(err); } }));
-  on('#kHantar', async (e) => { const b = e.currentTarget; if (!(await sahkan('Hantar kiraan ini untuk pengesahan admin?', { ya: 'Hantar' }))) return; sibuk(b, async () => { try { lKiraanSatu(el, await api('inventori.kiraanSimpan', { id: k.id, baris: data(), hantar: true })); toast('Kiraan dihantar', 'ok'); } catch (err) { ralat(err); } }); });
+  on('#kHantar', async (e) => { const b = e.currentTarget, kosong = data().filter((x) => x.fizikal === null).length;
+    if (!(await sahkan(kosong ? `${kosong} item belum dikira dan tidak akan dilaras. Hantar kiraan ini untuk pengesahan admin?` : 'Hantar kiraan ini untuk pengesahan admin?', { ya: 'Hantar' }))) return; sibuk(b, async () => { try { lKiraanSatu(el, await api('inventori.kiraanSimpan', { id: k.id, baris: data(), hantar: true })); toast('Kiraan dihantar', 'ok'); } catch (err) { ralat(err); } }); });
   on('#kSah', async (e) => {
     const b = e.currentTarget;
     if (!(await sahkan('Sahkan kiraan ini? Rekod pelarasan akan dicipta bagi setiap item yang berbeza.', { ya: 'Sahkan' }))) return;
@@ -657,6 +658,8 @@ async function imbas(apabila) {
 /* ============================ LAPORAN ============================ */
 const lap = { jenis: 'baki', q: '', dari: '', hingga: '', tahun: '', status: '', kod: '', lokasi: '' };
 let hasilLap = null;
+// Papar tarikh ISO (yyyy-mm-dd) sebagai dd/mm/yyyy dalam jadual, cetakan & Excel.
+const tarikhLap = (r) => { if (r && typeof r.subtajuk === 'string') r.subtajuk = r.subtajuk.replace(/(\d{4})-(\d{2})-(\d{2})/g, '$3/$2/$1'); if (r && Array.isArray(r.baris)) r.baris = r.baris.map((b) => (Array.isArray(b) ? b.map((v) => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v.split('-').reverse().join('/') : v)) : b)); return r; };
 function lLaporan(el) {
   const j = lap.jenis, perluTempoh = ['penerimaan', 'pengeluaran', 'lupus', 'pelarasan', 'item', 'bulanan'].includes(j), perluTahun = ['tahunan', 'analisis'].includes(j);
   el.innerHTML = `<section class="card pad"><div class="grid inv-lapf">
@@ -685,7 +688,7 @@ function lLaporan(el) {
   $('#lGo', el).onclick = (e) => sibuk(e.currentTarget, async () => {
     baca();
     if (lap.jenis === 'item' && !lap.kod) return toast('Pilih item', 'bad');
-    try { hasilLap = await api('inventori.laporan', { ...lap, kategori: kat }); lLaporan(el); } catch (err) { ralat(err); }
+    try { hasilLap = tarikhLap(await api('inventori.laporan', { ...lap, kategori: kat })); lLaporan(el); } catch (err) { ralat(err); }
   });
   $('#lPr', el).onclick = () => (hasilLap.jenis === 'analisis' ? cetakHTML(hasilLap.tajuk, '', paparLap(hasilLap)) : cetakJadual(hasilLap.tajuk, hasilLap.subtajuk, hasilLap.lajur.map((c) => c.l), hasilLap.baris, hasilLap.kaki, hasilLap.lajur));
   $('#lXl', el).onclick = () => excelLap(hasilLap);

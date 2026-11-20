@@ -66,6 +66,7 @@ function tolak(op) {
   Q.push(op); simpanQ(); lukis(); jadualSync(400);
 }
 function jadualSync(ms) { clearTimeout(tunda); tunda = setTimeout(sync, ms); }
+addEventListener('online', () => { if (Q.length) jadualSync(300); }); // selaras serta-merta bila talian pulih
 async function sync() {
   if (sedangSync) return jadualSync(1500);
   sedangSync = true;

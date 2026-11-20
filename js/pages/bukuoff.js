@@ -149,7 +149,7 @@ function senarai() {
     return !q || `${r.perincian} ${r.catatan} ${dmy(r.tarikh)}`.toLowerCase().includes(q);
   });
   const el = $('#bList', P);
-  if (!R.length) { el.innerHTML = `<div class="empty">${ic('calendar')}<p style="margin:0">${D.rekod.some((r) => r.stafId === pilih) ? 'Tiada rekod sepadan.' : 'Tiada rekod lagi. Tekan "Rekod baharu" untuk mula.'}</p></div>`; return; }
+  if (!R.length) { el.innerHTML = `<div class="empty">${ic('calendar')}<p style="margin:0">${D.rekod.some((r) => r.stafId === pilih) ? 'Tiada rekod sepadan.' : 'Tiada rekod lagi. Klik "Rekod baharu" untuk mula.'}</p></div>`; return; }
   const bersih = {};
   R.forEach((r) => { const k = r.tarikh.slice(0, 7); bersih[k] = (bersih[k] || 0) + eff(r) * r.minit; });
   let cur = '', html = '';
@@ -178,7 +178,7 @@ function butiran(id) {
     tajuk: r.perincian, badge: JENIS[r.jenis] || r.jenis, saiz: 'sm',
     badan: `<dl class="kv">${baris.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
       ${r.status === 'DISAHKAN' && !s.bolehSah ? '<p class="small muted" style="margin:12px 0 0">Mengubah rekod yang telah disahkan akan menghantarnya semula untuk pengesahan.</p>' : ''}`,
-    kaki: boleh ? `${!(r.status === 'DISAHKAN' && !s.bolehSah) ? `<button class="btn bad" data-padam>${ic('trash')}</button>` : ''}
+    kaki: boleh ? `${!(r.status === 'DISAHKAN' && !s.bolehSah) ? `<button class="btn bad" data-padam>${ic('trash')} Padam</button>` : ''}
       ${r.status === 'MENUNGGU' ? `<button class="btn" data-semula>${ic('mail')} Hantar semula</button>` : ''}<span class="spacer"></span>
       <button class="btn pri" data-ubah>${ic('edit')} Ubah</button>` : '<button class="btn" data-tutup>Tutup</button>'
   });
@@ -220,7 +220,7 @@ function borang(r, awal = {}) {
         <div class="field"><span>Baki selepas</span><div class="bo-prev" id="prev">—</div></div></div>
       <label class="field"><span>Perincian *</span><input class="in" name="perincian" maxlength="200" required list="dlPer" value="${esc(r ? r.perincian : '')}" placeholder="cth TPN (P), Off pagi"><datalist id="dlPer">${perincianLama.map((p) => `<option value="${esc(p)}">`).join('')}</datalist></label>
       <label class="field"><span>Catatan</span><input class="in" name="catatan" maxlength="500" value="${esc(r ? r.catatan : '')}"></label>
-      ${D.tetapan.notifikasi === 'MANUAL' ? '<p class="small muted" style="margin:0">Mod draf: rekod disimpan sebagai draf. Tekan "Hantar untuk pengesahan" bila siap.</p>' : '<p class="small muted" style="margin:0">Tugasan & off dihantar terus kepada penyelia untuk pengesahan melalui emel.</p>'}
+      ${D.tetapan.notifikasi === 'MANUAL' ? '<p class="small muted" style="margin:0">Mod draf: rekod disimpan sebagai draf. Klik "Hantar untuk pengesahan" bila siap.</p>' : '<p class="small muted" style="margin:0">Tugasan & off dihantar terus kepada penyelia untuk pengesahan melalui emel.</p>'}
     </form>`,
     kaki: `<button class="btn" data-tutup>Batal</button><button class="btn pri" data-simpan>${D.tetapan.notifikasi === 'MANUAL' ? 'Simpan (draf)' : 'Simpan & hantar'}</button>`
   });

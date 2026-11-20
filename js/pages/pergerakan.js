@@ -328,7 +328,9 @@ function borangTambah({ tarikh, staf } = {}) {
     if (a && b < a) f.hingga.value = a;
     const n = a ? Math.round((keDate(f.hingga.value || a) - keDate(a)) / 864e5) + 1 : 0;
     $('[data-lgk]', d).hidden = !(n > 1 && hm.length);
-    $('[data-ring]', d).textContent = dipilih.length && n ? `${dipilih.join(' + ')} · ${n} hari` : '';
+    let m = n;
+    if (n > 1 && hm.length && f.langkau.checked) { m = 0; for (let i = 0; i < n; i++) if (!hm.includes(keDate(tambahHari(a, i)).getDay())) m++; }
+    $('[data-ring]', d).textContent = dipilih.length && n ? `${dipilih.join(' + ')} · ${m} hari` : '';
   };
   f.oninput = ring;
   pasangPemilih(d, true, dipilih);

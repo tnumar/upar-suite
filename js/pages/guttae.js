@@ -72,7 +72,7 @@ function kadHTML(L) {
     <div class="gut-h"><h3>${esc(o.nama)}</h3><span class="badge ${TAG[o.st][1]}">${TAG[o.st][0]}</span></div>
     <div class="gut-big"><b>${o.allUnknown ? '?' : o.boleh}</b><span>${o.allUnknown ? 'bilangan belum diisi' : 'botol boleh digunakan'}</span></div>
     ${o.luputN ? `<div class="gut-x">${o.luputQty ? o.luputQty + ' botol ' : 'Ada kelompok '}sudah luput — asingkan dan kemas kini bilangan.</div>` : ''}
-    <div class="small muted">${o.st === 'z' ? 'Tiada stok' : !o.next ? 'Tarikh luput belum diisi' : `Luput terdekat: <b>${fd(o.next.luput)}</b>`}</div>
+    <div class="small muted">${o.st === 'z' ? 'Tiada stok' : !o.next ? (o.luputN ? 'Tiada kelompok yang masih sah — sediakan kelompok baharu' : 'Tarikh luput belum diisi') : `Luput terdekat: <b>${fd(o.next.luput)}</b>`}</div>
     <div class="gut-b">${o.b.map((g) => `<div class="gut-r${g.qty === 0 ? ' zero' : ''}" data-buka="${esc(g.id)}"><span>${g.luput ? fd(g.luput) : '—'}</span>${lencana(g)}
       ${D.boleh && g.qty !== null ? `<span class="gut-st"><button class="btn icon sm" data-l="${esc(g.id)}" data-n="-1" aria-label="Kurang">−</button><b>${g.qty}</b><button class="btn icon sm" data-l="${esc(g.id)}" data-n="1" aria-label="Tambah">+</button></span>` : `<b>${g.qty === null ? '?' : g.qty}</b>`}</div>`).join('')}</div>
     ${D.boleh ? `<button class="btn sm ghost" data-tambah="${esc(o.nama)}">${ic('plus')} Tambah kelompok</button>` : ''}</article>`).join('')}</div>`;

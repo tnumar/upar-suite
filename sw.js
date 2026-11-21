@@ -1,6 +1,6 @@
 /* Service worker UPAR Suite: cache rangka app supaya boleh dibuka tanpa internet.
  * Tukar VERSI setiap kali fail web dikemas kini supaya pengguna menerima versi baharu. */
-const VERSI = 'upar-v1.6.0';
+const VERSI = 'upar-v1.6.1';
 const RANGKA = [
   './', 'index.html', 'config.js', 'manifest.webmanifest', 'css/app.css',
   'js/app.js', 'js/api.js', 'js/ui.js', 'js/art.js', 'js/icons.js',
@@ -9,7 +9,7 @@ const RANGKA = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSI).then((c) => c.addAll(RANGKA)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(VERSI).then((c) => c.addAll(RANGKA.map((p) => new Request(p, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
@@ -22,10 +22,13 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(req.url);
   const fon = url.host === 'fonts.googleapis.com' || url.host === 'fonts.gstatic.com';
   if (url.origin !== location.origin && !fon) return;
-  // Fon: cache dahulu (jarang berubah). Fail app: rangkaian dahulu (sentiasa versi terkini), cache bila luar talian.
+  // Fon & fail rangka app: cache dahulu → buka serta-merta tanpa menunggu rangkaian (laju di telefon).
+  // Kemas kini dijamin oleh VERSI: sw.js baharu → cache baharu → app dimuat semula pada navigasi seterusnya.
+  // Fail lain: rangkaian dahulu, cache bila luar talian.
+  const rangka = !fon && (req.mode === 'navigate' || RANGKA.some((p) => url.pathname.endsWith('/' + p.replace('./', ''))));
   e.respondWith(caches.open(VERSI).then(async (c) => {
-    if (fon) {
-      const hit = await c.match(req);
+    if (fon || rangka) {
+      const hit = await c.match(req, { ignoreSearch: rangka });
       if (hit) return hit;
     }
     try {

@@ -90,6 +90,7 @@ async function lalu() {
     const m = await import('./pages/kiosk.js');
     return m.paparKiosk($('#app'), t);
   }
+  if (window.__versiBaharu) { location.reload(); return; } // versi baharu sudah dipasang → muat semula senyap semasa bertukar halaman
   if (!token() || !S.me) return paparLogin();
   if (!$('#page')) lukisRangka();
   if (S.me.tukarPin && !location.hash.startsWith('#/profil')) { location.hash = '#/profil/pin'; return; }
@@ -169,5 +170,10 @@ else if (token() && S.me) {
 } else paparLogin();
 
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+  const adaSW = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (adaSW) window.__versiBaharu = true; });
+  navigator.serviceWorker.register('sw.js').then((r) => {
+    // semak versi baharu bila app dibuka semula dari latar belakang
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') r.update().catch(() => {}); });
+  }).catch(() => {});
 }

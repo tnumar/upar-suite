@@ -13,7 +13,49 @@ export function setToken(t) { if (t) simpan('token', t); else buang('token'); }
 let onAuthGagal = () => {};
 export function bilaAuthGagal(fn) { onAuthGagal = fn; }
 
-export async function api(fn, args = {}, { senyap = false } = {}) {
+/* ---------- cache dahulu, segar kemudian (stale-while-revalidate) ----------
+ * Setiap panggilan GAS mengambil ~2–3 saat (overhead tetap Apps Script). Panggilan data yang ditanda
+ * { cache: true } memulangkan data terakhir serta-merta, kemudian mengambil data segar di latar belakang.
+ * Jika data berubah, pendengar bilaDataBaharu(fn) dipanggil supaya halaman dilukis semula. */
+const SEGAR_MS = 30000;
+const segarPada = {};
+const dipakai = new Set();
+let onDataBaharu = () => {};
+export function bilaDataBaharu(fn) { onDataBaharu = fn; }
+/** Fungsi API (cache) yang digunakan oleh halaman semasa — ditetapkan semula oleh penghala. */
+export function setSemulaDipakai() { dipakai.clear(); }
+export function dipakaiHalaman(fn) { return dipakai.has(fn); }
+const kunciCache = (fn, args) => 'cache.api.' + fn + ':' + JSON.stringify(args || {});
+export function buangCacheApi() {
+  try { Object.keys(localStorage).filter((k) => k.startsWith('upar.cache.')).forEach((k) => localStorage.removeItem(k)); } catch (e) {}
+  Object.keys(segarPada).forEach((k) => delete segarPada[k]);
+}
+
+async function apiCache(fn, args, opt) {
+  const k = kunciCache(fn, args), c = ambil(k);
+  dipakai.add(fn);
+  if (c != null) {
+    if (Date.now() - (segarPada[k] || 0) > SEGAR_MS) {
+      segarPada[k] = Date.now();
+      api(fn, args, { senyap: true }).then((d) => {
+        const s = JSON.stringify(d);
+        if (s !== c) { simpan(k, s); onDataBaharu(fn); }
+      }).catch(() => { segarPada[k] = 0; });
+    }
+    try { return JSON.parse(c); } catch (e) { buang(k); }
+  }
+  const d = await api(fn, args, { senyap: opt.senyap });
+  simpan(k, JSON.stringify(d)); segarPada[k] = Date.now();
+  return d;
+}
+/** Lupakan cache (cth selepas simpan borang) supaya bukaan seterusnya mengambil data segar. */
+export function lupaCache(fn, args) { const k = kunciCache(fn, args); buang(k); delete segarPada[k]; }
+/** Kemas kini cache selepas tindakan tulis (cth simpan) supaya bukaan seterusnya tepat. */
+export function kemasCache(fn, args, data) { const k = kunciCache(fn, args); simpan(k, JSON.stringify(data)); segarPada[k] = Date.now(); }
+
+export async function api(fn, args = {}, opt = {}) {
+  if (opt.cache) return apiCache(fn, args, opt);
+  const { senyap = false } = opt;
   let res;
   try {
     res = await fetch(URL_API, {

@@ -1,6 +1,6 @@
 // Panel Admin: semua tetapan boleh diubah tanpa kod.
 import { S, tajuk, segarBoot } from '../app.js';
-import { api } from '../api.js';
+import { api, kemasCache, lupaCache } from '../api.js';
 import { $, $$, esc, toast, ralat, sibuk, dialog, sahkan, salin, debounce, masaRingkas } from '../ui.js';
 import { ic } from '../icons.js';
 import { seni } from '../art.js';
@@ -41,7 +41,7 @@ export async function papar(page, rest) {
 
 /* ================= Pengguna & Peranan ================= */
 async function staf(el) {
-  let list = await api('admin.staf');
+  let list = await api('admin.staf', {}, { cache: true });
   const lukis = () => {
     const q = ($('#qs', el) || {}).value || '';
     const t = q.toLowerCase();
@@ -89,7 +89,7 @@ async function staf(el) {
     $('[data-simpan]', d).onclick = (e) => sibuk(e.currentTarget, async () => {
       const peranan = {}; $$('[data-r]', d).forEach((s) => (peranan[s.dataset.r] = s.value));
       try {
-        const r = await api('admin.staf.simpan', { stafIdLama: baru ? '' : u.stafId, stafId: f.stafId.value.trim(), nama: f.nama.value.trim(), emel: f.emel.value.trim(), jawatan: f.jawatan.value.trim(), unit: f.unit.value.trim(), penyeliaId: f.penyeliaId.value, aktif: f.aktif.checked, peranan, pasukan: $$('[data-pk]', d).filter((c) => c.checked).map((c) => c.value) });
+        lupaCache('admin.staf'); const r = await api('admin.staf.simpan', { stafIdLama: baru ? '' : u.stafId, stafId: f.stafId.value.trim(), nama: f.nama.value.trim(), emel: f.emel.value.trim(), jawatan: f.jawatan.value.trim(), unit: f.unit.value.trim(), penyeliaId: f.penyeliaId.value, aktif: f.aktif.checked, peranan, pasukan: $$('[data-pk]', d).filter((c) => c.checked).map((c) => c.value) });
         list = r.staf; lukis(); d.close(); toast('Disimpan', 'ok');
         if (r.pin) tunjukPin(f.nama.value, f.stafId.value, r.pin, r.emelDihantar);
         if (!baru && u.stafId === S.me.stafId) segarBoot();
@@ -99,7 +99,7 @@ async function staf(el) {
     if (rs) rs.onclick = async (e) => {
       const b = e.currentTarget;
       if (!(await sahkan(`Reset PIN ${u.nama}? Semua sesi log masuk staf ini akan ditamatkan.`, { ya: 'Reset PIN' }))) return;
-      sibuk(b, async () => { try { const r = await api('admin.staf.resetPin', { stafId: u.stafId }); d.close(); tunjukPin(u.nama, u.stafId, r.pin, r.emelDihantar); list = await api('admin.staf'); lukis(); } catch (err) { ralat(err); } });
+      sibuk(b, async () => { try { const r = await api('admin.staf.resetPin', { stafId: u.stafId }); d.close(); tunjukPin(u.nama, u.stafId, r.pin, r.emelDihantar); list = await api('admin.staf'); kemasCache('admin.staf', {}, list); lukis(); } catch (err) { ralat(err); } });
     };
   }
 }
@@ -118,7 +118,7 @@ function tunjukPin(nama, id, pin, emel) {
 
 /* ================= Jenama & Tetapan ================= */
 async function borangTetapan(el, tapis, tajukBahagian, selepas) {
-  const rows = (await api('admin.tetapan')).filter(tapis);
+  const rows = (await api('admin.tetapan', {}, { cache: true })).filter(tapis);
   el.innerHTML = `<form class="card pad" id="ft" style="max-width:820px"><h3 style="margin:0 0 16px;font-size:16px">${esc(tajukBahagian)}</h3>
     ${rows.map((r) => `<label class="field"><span>${esc(r.kunci)}${r.modul ? ` <span class="badge grey">${esc(r.modul)}</span>` : ''}</span>
       ${r.kunci === 'WARNA_UTAMA' ? `<div class="row"><input type="color" name="${esc(r.kunci)}_c" value="${esc(r.nilai || '#4f46e5')}" style="width:52px;height:42px;border:0;background:none"><input class="in" style="flex:1" name="${esc(r.kunci)}" value="${esc(r.nilai)}"></div>`
@@ -138,7 +138,7 @@ async function borangTetapan(el, tapis, tajukBahagian, selepas) {
   f.onsubmit = (e) => {
     e.preventDefault();
     const nilai = {}; rows.forEach((r) => (nilai[r.kunci] = f.elements[r.kunci].value.trim()));
-    sibuk(f.querySelector('[type=submit]'), async () => { try { await api('admin.tetapan.simpan', { nilai }); toast('Tetapan disimpan', 'ok'); selepas && selepas(); } catch (err) { ralat(err); } });
+    sibuk(f.querySelector('[type=submit]'), async () => { try { await api('admin.tetapan.simpan', { nilai }); lupaCache('admin.tetapan'); toast('Tetapan disimpan', 'ok'); selepas && selepas(); } catch (err) { ralat(err); } });
   };
 }
 const jenama = (el) => borangTetapan(el, (r) => JENAMA.includes(r.kunci), 'Jenama', async () => { await segarBoot(); location.reload(); });
@@ -146,7 +146,7 @@ const tetapan = (el) => borangTetapan(el, (r) => !JENAMA.includes(r.kunci), 'Tet
 
 /* ================= Senarai Rujukan ================= */
 async function senarai(el) {
-  const rows = await api('admin.senarai');
+  const rows = await api('admin.senarai', {}, { cache: true });
   const nama = [...new Set(rows.map((r) => r.senarai))].sort();
   el.innerHTML = `<p class="muted small" style="margin:0 0 12px">Senarai pilihan (dropdown) yang digunakan dalam modul. Ubah label, susunan atau nyahaktif item tanpa kod.
       <b>PASUKAN</b> = tag pasukan staf (Pergerakan Staf). Kod pergerakan &amp; cuti umum diurus dalam <a href="#/pergerakan/urus">Pergerakan Staf → Urus kod &amp; cuti umum</a>.</p>
@@ -164,7 +164,7 @@ async function senarai(el) {
     e.preventDefault();
     const f = e.target;
     const item = $$('.ed-ing', f).map((r) => ({ nilai: $('[data-f=n]', r).value.trim(), label: $('[data-f=l]', r).value.trim(), aktif: $('[data-f=a]', r).checked })).filter((x) => x.nilai);
-    sibuk(f.querySelector('[type=submit]'), async () => { try { await api('admin.senarai.simpan', { senarai: f.dataset.s, item }); toast('Disimpan', 'ok'); segarBoot(); } catch (err) { ralat(err); } });
+    sibuk(f.querySelector('[type=submit]'), async () => { try { await api('admin.senarai.simpan', { senarai: f.dataset.s, item }); lupaCache('admin.senarai'); toast('Disimpan', 'ok'); segarBoot(); } catch (err) { ralat(err); } });
   });
 }
 const barisSenarai = (r) => `<div class="ed-ing" style="grid-template-columns:1fr 1.4fr auto 36px"><input class="in" data-f="n" value="${esc(r.nilai)}" placeholder="Nilai"><input class="in" data-f="l" value="${esc(r.label)}" placeholder="Label paparan">
@@ -172,7 +172,7 @@ const barisSenarai = (r) => `<div class="ed-ing" style="grid-template-columns:1f
 
 /* ================= Kata Motivasi ================= */
 async function motivasi(el) {
-  let rows = await api('admin.motivasi');
+  let rows = await api('admin.motivasi', {}, { cache: true });
   const lukis = () => {
     el.innerHTML = `<div class="row" style="margin-bottom:12px"><p class="muted small" style="margin:0;flex:1">${rows.filter((r) => r.aktif).length} kata aktif. Satu kata dipaparkan setiap hari (sama untuk semua staf). Imej kosong = ilustrasi terbina.</p>
       <button class="btn" id="bAdd">${ic('plus')} Kata baharu</button><button class="btn pri" id="bSave">Simpan semua</button></div>
@@ -185,7 +185,7 @@ async function motivasi(el) {
         <td><label class="switch"><input type="checkbox" data-f="aktif" ${r.aktif ? 'checked' : ''}></label></td>
         <td><button class="btn ghost icon" data-del aria-label="Padam">${ic('trash')}</button></td></tr>`).join('')}</tbody></table></div>`;
     $('#bAdd', el).onclick = () => { baca(); rows.unshift({ id: '', teks: '', bahasa: 'BM', sumber: '', imej: '', aktif: true }); lukis(); };
-    $('#bSave', el).onclick = (e) => sibuk(e.currentTarget, async () => { baca(); try { rows = await api('admin.motivasi.simpan', { item: rows.filter((r) => r.teks.trim()) }); toast('Disimpan', 'ok'); lukis(); } catch (err) { ralat(err); } });
+    $('#bSave', el).onclick = (e) => sibuk(e.currentTarget, async () => { baca(); try { rows = await api('admin.motivasi.simpan', { item: rows.filter((r) => r.teks.trim()) }); lupaCache('admin.motivasi'); toast('Disimpan', 'ok'); lukis(); } catch (err) { ralat(err); } });
     el.querySelector('tbody').onclick = (e) => { const b = e.target.closest('[data-del]'); if (b) { baca(); rows.splice(Number(b.closest('tr').dataset.i), 1); lukis(); } };
   };
   const baca = () => $$('tr[data-i]', el).forEach((tr) => {
@@ -197,7 +197,7 @@ async function motivasi(el) {
 
 /* ================= Templat Emel ================= */
 async function templat(el) {
-  const rows = await api('admin.templat');
+  const rows = await api('admin.templat', {}, { cache: true });
   el.innerHTML = rows.map((t) => `<form class="card pad" data-k="${esc(t.kunci)}" style="max-width:820px;margin-bottom:14px">
     <div class="row" style="margin-bottom:10px"><b>${esc(t.kunci)}</b></div><p class="small muted" style="margin:0 0 12px">${esc(t.keterangan)}</p>
     <label class="field"><span>Subjek</span><input class="in" name="subjek" value="${esc(t.subjek)}"></label>
@@ -205,13 +205,13 @@ async function templat(el) {
     <button class="btn pri" type="submit">Simpan</button></form>`).join('');
   el.addEventListener('submit', (e) => {
     e.preventDefault(); const f = e.target;
-    sibuk(f.querySelector('[type=submit]'), async () => { try { await api('admin.templat.simpan', { kunci: f.dataset.k, subjek: f.subjek.value, badan: f.badan.value }); toast('Disimpan', 'ok'); } catch (err) { ralat(err); } });
+    sibuk(f.querySelector('[type=submit]'), async () => { try { await api('admin.templat.simpan', { kunci: f.dataset.k, subjek: f.subjek.value, badan: f.badan.value }); lupaCache('admin.templat'); toast('Disimpan', 'ok'); } catch (err) { ralat(err); } });
   });
 }
 
 /* ================= Peranti Kiosk ================= */
 async function peranti(el) {
-  let L = await api('admin.peranti');
+  let L = await api('admin.peranti', {}, { cache: true });
   const pautan = (tok) => location.origin + location.pathname + '#/kiosk/' + tok;
   const tunjuk = (nama, tok) => {
     const url = pautan(tok);
@@ -230,12 +230,12 @@ async function peranti(el) {
         <td style="white-space:nowrap"><button class="btn sm" data-token="${esc(p.id)}">${ic('key')} Pautan baharu</button>${p.sah ? ` <button class="btn sm bad" data-batal="${esc(p.id)}">Batalkan</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">Belum ada peranti didaftar.</td></tr>'}</tbody></table></div>`;
     $('#pBaru', el).onclick = () => {
       const d = dialog({ tajuk: 'Daftar peranti kiosk', saiz: 'sm', badan: '<label class="field" style="margin:0"><span>Nama peranti</span><input class="in" id="pn" placeholder="cth TV Unit UPAR"></label>', kaki: '<button class="btn" data-tutup>Batal</button><button class="btn pri" data-ok>Daftar</button>' });
-      $('[data-ok]', d).onclick = (e) => sibuk(e.currentTarget, async () => { try { const r = await api('admin.peranti.simpan', { nama: $('#pn', d).value.trim() }); L = r.senarai; d.close(); lukis(); tunjuk($('#pn', d).value.trim(), r.token); } catch (err) { ralat(err); } });
+      $('[data-ok]', d).onclick = (e) => sibuk(e.currentTarget, async () => { try { const r = await (lupaCache('admin.peranti'), api)('admin.peranti.simpan', { nama: $('#pn', d).value.trim() }); L = r.senarai; d.close(); lukis(); tunjuk($('#pn', d).value.trim(), r.token); } catch (err) { ralat(err); } });
     };
     el.onclick = async (e) => {
       const t = e.target.closest('[data-token]'), b = e.target.closest('[data-batal]');
-      if (t) { if (!(await sahkan('Jana pautan baharu? Pautan lama tidak lagi berfungsi.', { ya: 'Jana' }))) return; try { const r = await api('admin.peranti.simpan', { id: t.dataset.token, tokenBaru: true }); L = r.senarai; lukis(); tunjuk(L.find((x) => x.id === t.dataset.token).nama, r.token); } catch (err) { ralat(err); } }
-      if (b) { if (!(await sahkan('Batalkan peranti ini? Skrin akan berhenti memaparkan Dashboard.', { ya: 'Batalkan', bahaya: true }))) return; try { L = (await api('admin.peranti.simpan', { id: b.dataset.batal, aktif: false })).senarai; lukis(); } catch (err) { ralat(err); } }
+      if (t) { if (!(await sahkan('Jana pautan baharu? Pautan lama tidak lagi berfungsi.', { ya: 'Jana' }))) return; try { const r = await (lupaCache('admin.peranti'), api)('admin.peranti.simpan', { id: t.dataset.token, tokenBaru: true }); L = r.senarai; lukis(); tunjuk(L.find((x) => x.id === t.dataset.token).nama, r.token); } catch (err) { ralat(err); } }
+      if (b) { if (!(await sahkan('Batalkan peranti ini? Skrin akan berhenti memaparkan Dashboard.', { ya: 'Batalkan', bahaya: true }))) return; try { L = (await (lupaCache('admin.peranti'), api)('admin.peranti.simpan', { id: b.dataset.batal, aktif: false })).senarai; lukis(); } catch (err) { ralat(err); } }
     };
   };
   lukis();
@@ -309,7 +309,7 @@ async function migrasi(el) {
 
 /* ================= Keputusan UAT ================= */
 async function uat(el) {
-  const d = await api('uat.semua');
+  const d = await api('uat.semua', {}, { cache: true });
   const nm = (id) => (d.staf.find((s) => s.stafId === id) || { nama: id }).nama;
   const ikut = {}; d.rekod.forEach((r) => { (ikut[r.senario] = ikut[r.senario] || []).push(r); });
   const gagal = d.rekod.filter((r) => r.status === 'GAGAL');

@@ -10,7 +10,7 @@ export async function papar(page) {
   const senarai = senarioSaya(S);
   page.innerHTML = '<div class="skel" style="height:240px;margin-top:8px"></div>';
   let hasil = {};
-  try { (await api('uat.data')).forEach((r) => { hasil[r.senario] = r; }); }
+  try { (await api('uat.data', {}, { cache: true })).forEach((r) => { hasil[r.senario] = r; }); }
   catch (e) { page.innerHTML = `<div class="empty">${ic('alert')}<p>${esc(e.message)}</p></div>`; return; }
 
   const kiraan = () => {

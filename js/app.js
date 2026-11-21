@@ -1,5 +1,5 @@
 // UPAR Suite — rangka aplikasi: sesi, penghala, navigasi.
-import { api, token, setToken, bilaAuthGagal } from './api.js';
+import { api, token, setToken, bilaAuthGagal, bilaDataBaharu, setSemulaDipakai, dipakaiHalaman, buangCacheApi } from './api.js';
 import { $, $$, esc, simpan, ambil, buang, toast, ralat, inisial } from './ui.js';
 import { ic } from './icons.js';
 
@@ -78,7 +78,15 @@ function lukisRangka() {
 export function tajuk(t) { const el = $('#tajuk'); if (el) el.textContent = t; }
 
 /* ---------- penghala ---------- */
-let giliran = 0;
+let giliran = 0, kotor = false, kekalSkrol = false;
+// Data segar tiba (latar belakang) → lukis semula halaman semasa, kecuali pengguna sedang mengisi / dialog terbuka.
+bilaDataBaharu((fn) => {
+  if (!dipakaiHalaman(fn) || kotor || document.querySelector('dialog[open]')) return;
+  const a = document.activeElement;
+  if (a && a.closest && a.closest('#page') && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;
+  kekalSkrol = true; lalu();
+});
+addEventListener('input', (e) => { if (e.target.closest && e.target.closest('#page')) kotor = true; }, true);
 async function lalu() {
   if ((location.hash || '').startsWith('#/sah/')) { // pautan pengesahan Buku Off daripada emel (tanpa log masuk)
     const [, , id = '', t = ''] = location.hash.split('/');
@@ -107,11 +115,15 @@ async function lalu() {
     // bekas baharu bagi setiap navigasi: kerja tak segerak / pemasa halaman lama (cth penyelarasan Dashboard)
     // akan menulis ke bekas yang sudah tertanggal, bukan ke halaman yang sedang dibuka.
     page.innerHTML = '';
+    setSemulaDipakai(); kotor = false;
     const bekas = document.createElement('div');
     bekas.className = 'page-v';
     page.appendChild(bekas);
-    scrollTo(0, 0);
+    const y = scrollY, kekal = kekalSkrol;
+    kekalSkrol = false;
+    if (!kekal) scrollTo(0, 0);
     await mod.papar(bekas, rest, { modul: m });
+    if (kekal && n === giliran) scrollTo(0, y); // lukis semula senyap: kekalkan kedudukan skrol
   } catch (e) { console.error(e); page.innerHTML = `<div class="empty">${ic('alert')}<p>${esc(e.message || e)}</p></div>`; }
 }
 
@@ -133,6 +145,7 @@ async function paparLogin() {
     lukisRangka();
     location.hash = data.me.tukarPin ? '#/profil/pin' : '#/utama';
     lalu();
+    jadualPramuat();
   });
 }
 
@@ -147,6 +160,7 @@ export async function logKeluar() {
   try { await api('auth.logout', {}, { senyap: true }); } catch (e) {}
   setToken(null); buang('boot'); S.boot = null;
   ['formulari', 'bukuoff', 'inventori', 'dashboard', 'guttae'].forEach((k) => buang('cache.' + k));
+  buangCacheApi();
   buang('dash.q');
   try { Object.keys(localStorage).filter((k) => k.startsWith('upar.cache.perg.')).forEach((k) => localStorage.removeItem(k)); } catch (e) {}
   location.hash = '';
@@ -155,6 +169,28 @@ export async function logKeluar() {
 
 addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); window.__pasang = e; });
 bilaAuthGagal((msg) => { toast(msg || 'Sesi tamat', 'bad'); setToken(null); buang('boot'); S.boot = null; paparLogin(); });
+
+/* ---------- pramuat ----------
+ * Selepas app dibuka, ambil data modul utama di latar belakang (2 serentak) supaya modul dibuka serta-merta
+ * daripada cache walaupun belum pernah dilawati. */
+let sudahPramuat = false;
+function jadualPramuat() { if (!sudahPramuat) { sudahPramuat = true; setTimeout(pramuat, 2500); } }
+async function pramuat() {
+  if (!navigator.onLine || !token() || (navigator.connection && navigator.connection.saveData)) return;
+  const ada = (k) => { const m = MODUL.find((x) => x.k === k); return !!m && boleh(m); };
+  const kerja = [];
+  const dc = (fn, args = {}) => () => api(fn, args, { cache: true, senyap: true });
+  if (ada('pergerakan')) kerja.push(async () => { const m = await import('./pages/pergerakan.js'); const d = new Date(); await dc('pergerakan.data', m.argsData(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')))(); });
+  if (ada('bukuoff')) kerja.push(dc('bukuoff.data'));
+  if (ada('inventori')) kerja.push(dc('inventori.ringkasan'));
+  if (ada('guttae') && !ambil('cache.guttae')) kerja.push(async () => simpan('cache.guttae', await api('guttae.data', {}, { senyap: true })));
+  if (!ambil('cache.formulari')) kerja.push(async () => simpan('cache.formulari', await api('formulari.data', { v: '' }, { senyap: true })));
+  kerja.push(dc('pb.data'));
+  if (ada('uat')) kerja.push(dc('uat.data'));
+  if (S.ada('suite', ['ADMIN'])) kerja.push(dc('admin.staf'), dc('admin.tetapan'), dc('admin.senarai'));
+  const larian = async () => { while (kerja.length) { try { await kerja.shift()(); } catch (e) { /* abaikan: halaman akan cuba semula */ } } };
+  await Promise.all([larian(), larian()]);
+}
 
 /* ---------- mula ---------- */
 function statusRangkaian() { document.body.classList.toggle('offline', !navigator.onLine); }
@@ -166,6 +202,7 @@ addEventListener('hashchange', lalu);
 if (/^#\/(sah\/|kiosk)/.test(location.hash || '')) lalu();
 else if (token() && S.me) {
   lalu();
+  jadualPramuat();
   segarBoot().then((ok) => { if (ok && location.hash.startsWith('#/utama')) lalu(); });
 } else paparLogin();
 

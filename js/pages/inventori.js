@@ -1,6 +1,6 @@
 // Inventori — stor visual (kad + foto), bakul keluaran, imbas kod bar/QR, label 100×50 mm, lupus, kiraan stok & laporan.
 import { S, tajuk, setBoot } from '../app.js';
-import { api } from '../api.js';
+import { api, kemasCache } from '../api.js';
 import { $, $$, esc, toast, ralat, sibuk, dialog, sahkan, simpan, ambil, debounce, masaRingkas } from '../ui.js';
 import { ic } from '../icons.js';
 
@@ -66,15 +66,15 @@ export async function papar(page, rest) {
   V = ['ringkasan', 'transaksi', 'kiraan', 'laporan', 'urus'].includes(rest[0]) ? rest[0] : rest[0] === 'keluar' || rest[0] === 'terima' ? 'transaksi' : 'stor';
   if (rest[0] === 'keluar') tapisTx.jenis = 'I'; if (rest[0] === 'terima') tapisTx.jenis = 'R';
   page.innerHTML = '<div class="skel" style="height:420px;margin-top:8px"></div>';
-  try { await muat(); } catch (e) { return; }
+  try { await muat(true); } catch (e) { return; }
   if (kat === null) kat = ((S.me.pilihan || {}).kategoriInventori || []).filter((k) => D.kategori.some((x) => x.nilai === k));
   if (V === 'kiraan' && !D.boleh.kiraan) V = 'stor';
   if (V === 'urus' && !D.boleh.urus) V = 'stor';
   lukis();
   if (rest[0] === 'item' && rest[1]) butiranItem(decodeURIComponent(rest[1]));
 }
-async function muat() {
-  try { D = await api('inventori.ringkasan'); simpan('cache.inventori', D); }
+async function muat(cache = false) {
+  try { D = await api('inventori.ringkasan', {}, { cache }); simpan('cache.inventori', D); if (!cache) kemasCache('inventori.ringkasan', {}, D); }
   catch (e) {
     D = ambil('cache.inventori', true);
     if (!D) { P.innerHTML = `<div class="card empty">${ic('alert')}<p>${esc(e.message)}</p></div>`; throw e; }

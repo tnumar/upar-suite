@@ -1,6 +1,6 @@
 // Pergerakan Staf — kalendar kongsi unit (konsep TimeTree): kalendar bulanan, grid unit, jadual saya.
 import { S, tajuk } from '../app.js';
-import { api } from '../api.js';
+import { api, kemasCache } from '../api.js';
 import { $, $$, esc, toast, ralat, sibuk, dialog, sahkan, simpan, ambil, namaPanggilan, inisial } from '../ui.js';
 import { ic } from '../icons.js';
 
@@ -16,6 +16,8 @@ const pad = (n) => String(n).padStart(2, '0');
 const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const keDate = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
 const tambahHari = (s, n) => { const d = keDate(s); d.setDate(d.getDate() + n); return iso(d); };
+/** Julat data bagi satu bulan paparan (juga digunakan oleh pramuat dalam app.js). */
+export const argsData = (bulan) => ({ dari: tambahHari(bulan + '-01', -6), hingga: tambahHari(bulan + '-01', 41) });
 const tarikhP = (s) => { const d = keDate(s); return `${HARI[d.getDay()]}, ${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`; };
 const tarikhR = (s) => { const d = keDate(s); return `${d.getDate()} ${BULAN[d.getMonth()].slice(0, 3)}`; };
 const namaBulan = (b) => { const [y, m] = b.split('-').map(Number); return `${BULAN[m - 1]} ${y}`; };
@@ -75,14 +77,16 @@ export async function papar(page, rest) {
   page.innerHTML = `<div id="pgbar"></div><div id="pgv"><div class="skel" style="height:460px"></div></div>`;
   page.onclick = klik;
   page.onchange = (e) => { if (e.target.matches('[data-tapiskod]')) { st.kod = e.target.value; simpanTapis(); lukisSemua(); } };
-  await muat();
+  await muat(V !== 'urus');
 }
 
-async function muat() {
+async function muat(cache = false) {
   const n = ++giliran, first = st.bulan + '-01', ck = 'cache.perg.' + st.bulan;
   if (D) lukisBar();
   try {
-    const d = await api('pergerakan.data', { dari: tambahHari(first, -6), hingga: tambahHari(first, 41) });
+    const args = argsData(st.bulan);
+    const d = await api('pergerakan.data', args, { cache });
+    if (!cache) kemasCache('pergerakan.data', args, d);
     if (n !== giliran) return;
     D = d; simpan(ck, d);
   } catch (e) {
@@ -157,7 +161,7 @@ const hariPilihan = () => (hariIni().slice(0, 7) === st.bulan ? hariIni() : st.b
 function tukarBulan(n) {
   if (n === 0) st.bulan = hariIni().slice(0, 7);
   else { const d = keDate(st.bulan + '-01'); d.setMonth(d.getMonth() + n); st.bulan = iso(d).slice(0, 7); }
-  muat();
+  muat(true);
 }
 
 /* ============================ Kalendar bulanan ============================ */

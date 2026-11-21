@@ -2,7 +2,7 @@
 // Cetakan A4: (1) Laporan Penambahbaikan Berterusan (melintang) · (2) Kertas Kerja Cadangan Penambahbaikan (tegak),
 // dijana automatik daripada satu rekod dan boleh disunting sebelum disimpan & dicetak.
 import { S, tajuk } from '../app.js';
-import { api } from '../api.js';
+import { api, kemasCache } from '../api.js';
 import { $, $$, esc, toast, ralat, sibuk, dialog, sahkan, masaRingkas } from '../ui.js';
 import { ic } from '../icons.js';
 
@@ -20,8 +20,8 @@ const GB = new Map(); // cache gambar: id → data URL
 export async function papar(page) {
   tajuk('Penambahbaikan');
   P = page;
-  if (!D) page.innerHTML = '<div class="skel" style="height:320px;margin-top:8px"></div>'; else lukis();
-  try { D = await api('pb.data'); lukis(); }
+  page.innerHTML = '<div class="skel" style="height:320px;margin-top:8px"></div>';
+  try { D = await api('pb.data', {}, { cache: true }); lukis(); }
   catch (e) { page.innerHTML = `<div class="card empty">${ic('alert')}<p>${esc(e.message)}</p></div>`; }
 }
 
@@ -34,6 +34,7 @@ function tapis() {
     && (!q || `${r.tajuk} ${r.sebelum} ${r.selepas} ${r.aspek} ${r.olehNama} ${r.ahli}`.toLowerCase().includes(q)));
 }
 function lukis() {
+  if (D) kemasCache('pb.data', {}, D);
   const L = tapis();
   P.innerHTML = `<div class="row pb-alat" style="margin:6px 0 12px">
       <div class="search" style="flex:1 1 220px">${ic('search')}<input class="in" id="pq" type="search" placeholder="Cari perihal, sebelum, selepas, staf" value="${esc(st.q)}"></div>

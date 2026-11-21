@@ -922,3 +922,22 @@ fieldset.inv-unit legend { font-size: 13px; font-weight: 700; color: var(--ink-2
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* Item grid/flex boleh mengecil → jadual lebar tidak menolak kad melebihi skrin; .scroll-x boleh dileret */
+.grid > *, .card, .page-v > * { min-width: 0; }
+.scroll-x { max-width: 100%; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+.pg-top .pg-h { min-width: 0; }
+@media (max-width: 640px) {
+  /* Jadual borang → kad bertindan di telefon */
+  .tbl-kad thead { display: none; }
+  .tbl-kad, .tbl-kad tbody { display: block; }
+  .tbl-kad tr { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .tbl-kad td { display: flex; flex-direction: column; gap: 4px; padding: 0; border: 0; min-width: 0; }
+  .tbl-kad td[data-l]::before { content: attr(data-l); font-size: 11.5px; font-weight: 700; color: var(--muted); }
+  .tbl-kad td .in { width: 100% !important; min-width: 0 !important; }
+  .tbl-kad td.tk-aksi { flex-direction: row; justify-content: flex-end; align-items: end; }
+  .tbl-kad tr:last-child { border-bottom: 0; }
+  .pg-top { gap: 4px 10px; }
+  .pg-top > .btn.ghost { padding: 0 8px; margin-left: -8px; }
+  .pg-top > .pg-h { flex-basis: 100%; margin: 0; }
+}

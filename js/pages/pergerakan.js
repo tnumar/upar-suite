@@ -509,20 +509,20 @@ async function lukisUrus(el) {
   el.innerHTML = '<div class="skel" style="height:300px"></div>';
   try { cuti = await api('pergerakan.cuti'); } catch (e) { ralat(e); }
   const baris = (k, i) => `<tr data-i="${i}">
-    <td><input class="in" data-f="kod" value="${esc(k.kod)}" maxlength="10" style="width:84px;text-transform:uppercase;font-weight:800;color:${esc(k.warna)}"></td>
-    <td><input class="in" data-f="label" value="${esc(k.label)}" maxlength="60" style="min-width:150px"></td>
-    <td><select class="in" data-f="jenis">${URUT_JENIS.map((j) => `<option value="${j}" ${k.jenis === j ? 'selected' : ''}>${esc(JENIS[j])}</option>`).join('')}</select></td>
-    <td><input class="in" type="time" data-f="mula" value="${esc(k.mula)}"></td>
-    <td><input class="in" type="time" data-f="tamat" value="${esc(k.tamat)}"></td>
-    <td><input type="color" data-f="warna" value="${esc(k.warna)}" style="width:44px;height:40px;border:0;background:none"></td>
-    <td><label class="switch"><input type="checkbox" data-f="aktif" ${k.aktif ? 'checked' : ''}></label></td>
-    <td style="white-space:nowrap"><button class="btn ghost icon" data-up aria-label="Naikkan">↑</button><button class="btn ghost icon" data-del aria-label="Padam">${ic('trash')}</button></td></tr>`;
+    <td data-l="Kod"><input class="in" data-f="kod" value="${esc(k.kod)}" maxlength="10" style="width:84px;text-transform:uppercase;font-weight:800;color:${esc(k.warna)}"></td>
+    <td data-l="Maksud"><input class="in" data-f="label" value="${esc(k.label)}" maxlength="60" style="min-width:150px"></td>
+    <td data-l="Jenis"><select class="in" data-f="jenis">${URUT_JENIS.map((j) => `<option value="${j}" ${k.jenis === j ? 'selected' : ''}>${esc(JENIS[j])}</option>`).join('')}</select></td>
+    <td data-l="Mula"><input class="in" type="time" data-f="mula" value="${esc(k.mula)}"></td>
+    <td data-l="Tamat"><input class="in" type="time" data-f="tamat" value="${esc(k.tamat)}"></td>
+    <td data-l="Warna"><input type="color" data-f="warna" value="${esc(k.warna)}" style="width:44px;height:40px;border:0;background:none"></td>
+    <td data-l="Aktif"><label class="switch"><input type="checkbox" data-f="aktif" ${k.aktif ? 'checked' : ''}></label></td>
+    <td class="tk-aksi" style="white-space:nowrap"><button class="btn ghost icon" data-up aria-label="Naikkan">↑</button><button class="btn ghost icon" data-del aria-label="Padam">${ic('trash')}</button></td></tr>`;
   const teksCuti = (l) => l.map((c) => `${c.tarikh}  ${c.nama}`).join('\n');
   el.innerHTML = `<div class="grid" style="gap:16px">
     <section class="card pad"><div class="row" style="margin-bottom:6px"><h3 style="margin:0;font-size:16px;flex:1">Kod pergerakan</h3>
       <button class="btn sm" data-kadd>${ic('plus')} Kod</button><button class="btn pri sm" data-ksave>Simpan kod</button></div>
       <p class="small muted" style="margin:0 0 12px">Maksud kod dipaparkan kepada semua staf. Nyahaktif kod yang tidak lagi digunakan (rekod lama kekal). Kod yang dipadam masih kelihatan kelabu pada rekod lama.</p>
-      <div class="scroll-x"><table class="tbl"><thead><tr><th>Kod</th><th>Maksud</th><th>Jenis</th><th>Mula</th><th>Tamat</th><th>Warna</th><th>Aktif</th><th></th></tr></thead><tbody data-kb>${kod.map(baris).join('')}</tbody></table></div></section>
+      <div class="scroll-x"><table class="tbl tbl-kad"><thead><tr><th>Kod</th><th>Maksud</th><th>Jenis</th><th>Mula</th><th>Tamat</th><th>Warna</th><th>Aktif</th><th></th></tr></thead><tbody data-kb>${kod.map(baris).join('')}</tbody></table></div></section>
     <section class="card pad"><div class="row" style="margin-bottom:6px"><h3 style="margin:0;font-size:16px;flex:1">Cuti umum</h3><span class="badge grey" data-cn>${cuti.length} tarikh</span><button class="btn pri sm" data-csave>Simpan cuti umum</button></div>
       <p class="small muted" style="margin:0 0 10px">Tampal atau taip <b>banyak baris sekaligus</b> — satu cuti setiap baris. Format diterima:
         <code>2027-01-01 Tahun Baru</code> · <code>01/02/2027, Hari Wilayah</code> · <code>20/03/2027 hingga 21/03/2027 Hari Raya Aidilfitri</code>. Boleh tampal terus dari Excel (tarikh ⇥ nama). Baris bermula # diabaikan.</p>

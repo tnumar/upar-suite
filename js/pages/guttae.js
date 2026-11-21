@@ -53,8 +53,8 @@ function lukis() {
       <div class="chips">${[['all', 'Semua'], ['attn', 'Perlu perhatian'], ['z', 'Habis']].map(([k, n]) => `<button class="chip ${tapis === k ? 'on' : ''}" data-f="${k}">${n} <i>${cnt[k]}</i></button>`).join('')}</div>
       <div class="search" style="flex:1 1 200px">${ic('search')}<input class="in" id="gq" type="search" placeholder="Cari nama guttae" value="${esc(cari)}"></div>
       <div class="tabs"><button class="${pandang === 'kad' ? 'on' : ''}" data-v="kad">Kad</button><button class="${pandang === 'senarai' ? 'on' : ''}" data-v="senarai">Senarai</button></div>
-      ${D.boleh ? `<button class="btn pri" data-baru>${ic('plus')} Tambah kelompok</button>` : ''}</div>
-    ${!L.length ? `<div class="card empty">${ic('drop')}<p style="margin:0">${gr.length ? 'Tiada padanan.' : 'Belum ada stok guttae. Klik "Tambah kelompok".'}</p></div>` : pandang === 'senarai' ? senaraiHTML(L) : kadHTML(L)}`;
+      ${D.boleh ? `<button class="btn pri" data-baru>${ic('plus')} Batch baru</button>` : ''}</div>
+    ${!L.length ? `<div class="card empty">${ic('drop')}<p style="margin:0">${gr.length ? 'Tiada padanan.' : 'Belum ada stok guttae. Klik "Batch baru".'}</p></div>` : pandang === 'senarai' ? senaraiHTML(L) : kadHTML(L)}`;
   P.onclick = (e) => {
     const b = e.target.closest('[data-f],[data-v],[data-baru],[data-buka],[data-tambah],[data-l]');
     if (!b) return;
@@ -76,7 +76,7 @@ function kadHTML(L) {
     <div class="small muted">${o.st === 'z' ? 'Tiada stok' : !o.next ? (o.luputN ? 'Tiada kelompok yang masih sah — sediakan kelompok baharu' : 'Tarikh luput belum diisi') : `Luput terdekat: <b>${fd(o.next.luput)}</b>`}</div>
     <div class="gut-b">${o.b.map((g) => `<div class="gut-r${g.qty === 0 ? ' zero' : ''}" data-buka="${esc(g.id)}"><span>${g.luput ? fd(g.luput) : '—'}</span>${lencana(g)}
       ${D.boleh && g.qty !== null ? `<span class="gut-st"><button class="btn icon sm" data-l="${esc(g.id)}" data-n="-1" aria-label="Kurang">−</button><b>${g.qty}</b><button class="btn icon sm" data-l="${esc(g.id)}" data-n="1" aria-label="Tambah">+</button></span>` : `<b>${g.qty === null ? '?' : g.qty}</b>`}</div>`).join('')}</div>
-    ${D.boleh ? `<button class="btn sm ghost" data-tambah="${esc(o.nama)}">${ic('plus')} Tambah kelompok</button>` : ''}</article>`).join('')}</div>`;
+    ${D.boleh ? `<button class="btn sm ghost" data-tambah="${esc(o.nama)}">${ic('plus')} Batch baru</button>` : ''}</article>`).join('')}</div>`;
 }
 function senaraiHTML(L) {
   return `<div class="card scroll-x"><table class="tbl"><thead><tr><th>Guttae</th><th>Tarikh luput</th><th>Baki tempoh</th><th style="text-align:right">Bilangan</th><th>Kemas kini terakhir</th></tr></thead><tbody>
@@ -113,7 +113,7 @@ function borang(g, nama) {
   const ro = !D.boleh;
   const semua = [...new Set([...D.nama, ...D.kelompok.map((x) => x.nama)])].sort((a, b) => a.localeCompare(b, 'ms'));
   const d = dialog({
-    tajuk: g ? 'Kemas kini kelompok' : 'Tambah kelompok guttae', saiz: 'sm',
+    tajuk: g ? 'Kemas kini kelompok' : 'Batch baru', saiz: 'sm',
     badan: `<form id="fG" autocomplete="off"><label class="field"><span>Nama guttae *</span><input class="in" name="nama" list="dlG" required value="${esc(g ? g.nama : nama || '')}" ${ro ? 'disabled' : ''}><datalist id="dlG">${semua.map((n) => `<option value="${esc(n)}">`).join('')}</datalist></label>
       <label class="field"><span>Tarikh luput</span><input class="in" type="date" name="luput" value="${esc(g ? g.luput : '')}" ${ro ? 'disabled' : ''}></label>
       <label class="field"><span>Bilangan botol</span><div class="row" style="flex-wrap:nowrap"><button type="button" class="btn icon" data-s="-1" ${ro ? 'disabled' : ''}>−</button><input class="in" type="number" min="0" name="qty" value="${g && g.qty !== null ? g.qty : ''}" placeholder="?" style="text-align:center" ${ro ? 'disabled' : ''}><button type="button" class="btn icon" data-s="1" ${ro ? 'disabled' : ''}>+</button></div></label>
@@ -123,7 +123,7 @@ function borang(g, nama) {
           .sort((x, y) => (x.luput === y.luput ? 0 : !x.luput ? 1 : !y.luput ? -1 : x.luput < y.luput ? -1 : 1));
         return `<div class="gut-adik"><div class="gut-adik-h">Kelompok ${esc(g.nama)}</div>
           ${adik.map((x) => `<button type="button" class="gut-adik-r${x.id === g.id ? ' on' : ''}" data-tukar="${esc(x.id)}"><span>${x.luput ? fd(x.luput) : 'Tiada tarikh'}</span>${lencana(x)}<b>${x.qty === null ? '?' : x.qty}</b></button>`).join('')}
-          ${ro ? '' : `<button type="button" class="btn ghost sm" data-kbaru style="margin-top:6px">${ic('plus')} Tambah kelompok baharu</button>`}</div>`;
+          ${ro ? '' : `<button type="button" class="btn ghost sm" data-kbaru style="margin-top:6px">${ic('plus')} Batch baru</button>`}</div>`;
       })() : ''}`,
     kaki: ro ? '<button class="btn" data-tutup>Tutup</button>' : `${g ? `<button class="btn bad ghost" data-padam>${ic('trash')} Padam</button>` : ''}<span class="spacer"></span><button class="btn" data-tutup>Batal</button><button class="btn pri" data-ok>Simpan</button>`
   });

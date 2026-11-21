@@ -1,6 +1,6 @@
 /* Service worker UPAR Suite: cache rangka app supaya boleh dibuka tanpa internet.
  * Tukar VERSI setiap kali fail web dikemas kini supaya pengguna menerima versi baharu. */
-const VERSI = 'upar-v1.6.3';
+const VERSI = 'upar-v1.6.4';
 const RANGKA = [
   './', 'index.html', 'config.js', 'manifest.webmanifest', 'css/app.css',
   'js/app.js', 'js/api.js', 'js/ui.js', 'js/art.js', 'js/icons.js',

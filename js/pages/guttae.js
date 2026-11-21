@@ -1,6 +1,6 @@
 // Guttae — stok ubat titis mata (kelompok: nama, tarikh luput, bilangan). Kemas kini stok sahaja.
 import { S, tajuk } from '../app.js';
-import { api } from '../api.js';
+import { api, versiTulis } from '../api.js';
 import { $, $$, esc, toast, ralat, sibuk, dialog, sahkan, simpan, ambil, masaRingkas } from '../ui.js';
 import { ic } from '../icons.js';
 
@@ -40,7 +40,8 @@ export async function papar(page) {
   P = page;
   D = ambil('cache.guttae', true);
   if (D) lukis(); else page.innerHTML = '<div class="skel" style="height:360px;margin-top:8px"></div>';
-  try { D = await api('guttae.data'); simpan('cache.guttae', D); lukis(); }
+  const v = versiTulis();
+  try { const d = await api('guttae.data'); if (v === versiTulis()) { D = d; simpan('cache.guttae', D); lukis(); } }
   catch (e) { if (!D) page.innerHTML = `<div class="card empty">${ic('alert')}<p>${esc(e.message)}</p></div>`; else toast('Luar talian — memaparkan data terakhir', 'bad'); }
 }
 function lukis() {
@@ -82,12 +83,33 @@ function senaraiHTML(L) {
     ${L.map((o) => o.b.map((g, i) => `<tr class="click" data-buka="${esc(g.id)}">${i === 0 ? `<td rowspan="${o.b.length}"><b>${esc(o.nama)}</b><div class="small muted">${o.allUnknown ? 'bilangan belum diisi' : o.boleh + ' boleh digunakan'} · ${TAG[o.st][0]}</div></td>` : ''}
       <td>${g.luput ? fd(g.luput) : '—'}</td><td>${lencana(g)}</td><td style="text-align:right"><b>${g.qty === null ? '?' : g.qty}</b></td><td class="small muted">${esc(g.oleh)}${g.upd ? ' · ' + esc(masaRingkas(new Date(g.upd).toISOString())) : ''}</td></tr>`).join('')).join('')}</tbody></table></div>`;
 }
-async function langkah(g, n) {
-  const q = Math.max(0, (g.qty || 0) + n);
-  try { D = await api('guttae.simpan', { id: g.id, nama: g.nama, luput: g.luput, qty: q }); simpan('cache.guttae', D); lukis(); toast(`${g.nama}: ${q} botol`, 'ok'); }
-  catch (e) { ralat(e); }
+/* −/+ : paparan dikemas kini SERTA-MERTA; simpanan dihantar sekali selepas pengguna berhenti menekan (0.7 s).
+ * Tulisan dihantar satu demi satu supaya urutan terpelihara; data pelayan hanya dipaparkan bila tiada lagi yang tertunda. */
+const tunda = new Map(); let rantai = Promise.resolve(), bakiTulis = 0;
+function langkah(g, n) {
+  if (!g || !D.boleh) return;
+  if (g._baru) { toast('Sedang disimpan… cuba sebentar lagi'); return; }
+  g.qty = Math.max(0, (g.qty || 0) + n);
+  simpan('cache.guttae', D); lukis();
+  clearTimeout(tunda.get(g.id));
+  tunda.set(g.id, setTimeout(() => { tunda.delete(g.id); hantarQty(g); }, 700));
+}
+function hantarQty(g) {
+  const o = { id: g.id, nama: g.nama, luput: g.luput, qty: g.qty };
+  bakiTulis++;
+  rantai = rantai.then(async () => {
+    try {
+      const r = await api('guttae.simpan', o);
+      if (--bakiTulis === 0 && !tunda.size) { D = r; simpan('cache.guttae', D); lukis(); }
+      toast(`${o.nama}: ${o.qty} botol disimpan`, 'ok');
+    } catch (e) {
+      bakiTulis--; ralat(e);
+      try { D = await api('guttae.data'); simpan('cache.guttae', D); lukis(); } catch (x) {} // pulih kepada data sebenar
+    }
+  });
 }
 function borang(g, nama) {
+  if (g && g._baru) { toast('Sedang disimpan… cuba sebentar lagi'); return; }
   const ro = !D.boleh;
   const semua = [...new Set([...D.nama, ...D.kelompok.map((x) => x.nama)])].sort((a, b) => a.localeCompare(b, 'ms'));
   const d = dialog({
@@ -103,9 +125,25 @@ function borang(g, nama) {
   if (!g && !nama) f.nama.focus(); else if (!g) f.luput.focus();
   const hantar = (padam) => async (e) => {
     if (padam && !(await sahkan(`Padam kelompok ${g.nama}${g.luput ? ' (' + fd(g.luput) + ')' : ''}?`, { ya: 'Padam', bahaya: true }))) return;
-    sibuk(e.currentTarget, async () => {
-      try { D = await api('guttae.simpan', { id: g ? g.id : '', nama: f.nama.value.trim(), luput: f.luput.value, qty: f.qty.value, padam }); simpan('cache.guttae', D); d.close(); lukis(); toast(padam ? 'Dipadam' : 'Disimpan', 'ok'); }
-      catch (err) { ralat(err); }
+    const o = { id: g ? g.id : '', nama: f.nama.value.trim(), luput: f.luput.value, qty: f.qty.value, padam };
+    if (!o.nama) { f.nama.focus(); return; }
+    // Kemas kini paparan SERTA-MERTA (optimistik); pelayan disahkan di latar belakang.
+    const q = o.qty === '' ? null : Math.max(0, Math.floor(Number(o.qty)));
+    if (g) {
+      if (padam) D.kelompok = D.kelompok.filter((x) => x.id !== g.id);
+      else Object.assign(g, { nama: o.nama, luput: o.luput, qty: q, oleh: (S.me && S.me.nama) || g.oleh, upd: Date.now() });
+    } else D.kelompok.push({ id: 'baru-' + Date.now(), nama: o.nama, luput: o.luput, qty: q, oleh: (S.me && S.me.nama) || '', upd: Date.now(), _baru: true });
+    simpan('cache.guttae', D); d.close(); lukis();
+    bakiTulis++;
+    rantai = rantai.then(async () => {
+      try {
+        const r = await api('guttae.simpan', o);
+        if (--bakiTulis === 0 && !tunda.size) { D = r; simpan('cache.guttae', D); lukis(); }
+        toast(padam ? 'Dipadam' : 'Disimpan', 'ok');
+      } catch (err) {
+        bakiTulis--; ralat(err);
+        try { D = await api('guttae.data'); simpan('cache.guttae', D); lukis(); } catch (x) {}
+      }
     });
   };
   const ok = $('[data-ok]', d); if (ok) ok.onclick = hantar(false);

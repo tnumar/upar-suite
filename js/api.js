@@ -18,6 +18,11 @@ export function bilaAuthGagal(fn) { onAuthGagal = fn; }
  * { cache: true } memulangkan data terakhir serta-merta, kemudian mengambil data segar di latar belakang.
  * Jika data berubah, pendengar bilaDataBaharu(fn) dipanggil supaya halaman dilukis semula. */
 const SEGAR_MS = 30000;
+/* Pembilang tulis: naik bagi setiap panggilan bukan-baca. Data baca yang dimulakan SEBELUM tulisan terkini
+ * adalah basi dan tidak boleh menimpa hasil tulisan itu (perlumbaan "muat lama tiba selepas simpan"). */
+const BACA = /\.(data|ringkasan|staf|tetapan|senarai|motivasi|templat|peranti|audit|semua|foto|cuti|laporan|bootstrap|gambar|versi|tx|item|kiraan)$/;
+let tulisKe = 0;
+export const versiTulis = () => tulisKe;
 const segarPada = {};
 const dipakai = new Set();
 let onDataBaharu = () => {};
@@ -37,15 +42,18 @@ async function apiCache(fn, args, opt) {
   if (c != null) {
     if (Date.now() - (segarPada[k] || 0) > SEGAR_MS) {
       segarPada[k] = Date.now();
+      const v = tulisKe;
       api(fn, args, { senyap: true }).then((d) => {
+        if (v !== tulisKe) { segarPada[k] = 0; return; } // ada simpan semasa mengambil — data ini basi
         const s = JSON.stringify(d);
         if (s !== c) { simpan(k, s); onDataBaharu(fn); }
       }).catch(() => { segarPada[k] = 0; });
     }
     try { return JSON.parse(c); } catch (e) { buang(k); }
   }
+  const v = tulisKe;
   const d = await api(fn, args, { senyap: opt.senyap });
-  simpan(k, JSON.stringify(d)); segarPada[k] = Date.now();
+  if (v === tulisKe) { simpan(k, JSON.stringify(d)); segarPada[k] = Date.now(); }
   return d;
 }
 /** Lupakan cache (cth selepas simpan borang) supaya bukaan seterusnya mengambil data segar. */
@@ -56,6 +64,8 @@ export function kemasCache(fn, args, data) { const k = kunciCache(fn, args); sim
 export async function api(fn, args = {}, opt = {}) {
   if (opt.cache) return apiCache(fn, args, opt);
   const { senyap = false } = opt;
+  const tulis = !BACA.test(fn);
+  if (tulis) tulisKe++;
   let res;
   try {
     res = await fetch(URL_API, {
@@ -69,6 +79,7 @@ export async function api(fn, args = {}, opt = {}) {
   }
   let j;
   try { j = await res.json(); } catch (e) { throw new RalatApi('Respons pelayan tidak sah (HTTP ' + res.status + ').', 'BAD'); }
+  if (tulis) tulisKe++; // tulisan selesai: bacaan yang dimulakan semasa tulisan berjalan juga basi
   if (!j.ok) {
     if (j.code === 'AUTH' && !senyap) onAuthGagal(j.error);
     throw new RalatApi(j.error || 'Ralat tidak diketahui.', j.code);

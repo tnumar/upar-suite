@@ -941,3 +941,14 @@ fieldset.inv-unit legend { font-size: 13px; font-weight: 700; color: var(--ink-2
   .pg-top > .btn.ghost { padding: 0 8px; margin-left: -8px; }
   .pg-top > .pg-h { flex-basis: 100%; margin: 0; }
 }
+
+/* Guttae: kelompok lain dalam dialog kemas kini */
+.gut-adik { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line-2); }
+.gut-adik-h { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+.gut-adik-r { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: inherit; font: inherit; font-size: 14px; cursor: pointer; margin-bottom: 6px; text-align: left; }
+.gut-adik-r span:first-child { flex: 1; min-width: 0; }
+.gut-adik-r b { min-width: 24px; text-align: right; }
+.gut-adik-r.on { border-color: var(--brand); background: var(--brand-soft); cursor: default; }
+/* iPhone: input tarikh/masa tidak menyusut ikut lebar medan → melimpah */
+input[type="date"].in, input[type="time"].in, input[type="month"].in { -webkit-appearance: none; appearance: none; min-width: 0; max-width: 100%; display: block; }
+input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-date-and-time-value { text-align: left; }

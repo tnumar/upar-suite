@@ -117,10 +117,20 @@ function borang(g, nama) {
     badan: `<form id="fG" autocomplete="off"><label class="field"><span>Nama guttae *</span><input class="in" name="nama" list="dlG" required value="${esc(g ? g.nama : nama || '')}" ${ro ? 'disabled' : ''}><datalist id="dlG">${semua.map((n) => `<option value="${esc(n)}">`).join('')}</datalist></label>
       <label class="field"><span>Tarikh luput</span><input class="in" type="date" name="luput" value="${esc(g ? g.luput : '')}" ${ro ? 'disabled' : ''}></label>
       <label class="field"><span>Bilangan botol</span><div class="row" style="flex-wrap:nowrap"><button type="button" class="btn icon" data-s="-1" ${ro ? 'disabled' : ''}>−</button><input class="in" type="number" min="0" name="qty" value="${g && g.qty !== null ? g.qty : ''}" placeholder="?" style="text-align:center" ${ro ? 'disabled' : ''}><button type="button" class="btn icon" data-s="1" ${ro ? 'disabled' : ''}>+</button></div></label>
-      ${g && g.oleh ? `<p class="small muted" style="margin:0">Kemas kini terakhir: ${esc(g.oleh)}</p>` : ''}</form>`,
+      ${g && g.oleh ? `<p class="small muted" style="margin:0">Kemas kini terakhir: ${esc(g.oleh)}</p>` : ''}</form>
+      ${g ? (() => {
+        const adik = D.kelompok.filter((x) => x.nama.toLowerCase() === g.nama.toLowerCase())
+          .sort((x, y) => (x.luput === y.luput ? 0 : !x.luput ? 1 : !y.luput ? -1 : x.luput < y.luput ? -1 : 1));
+        return `<div class="gut-adik"><div class="gut-adik-h">Kelompok ${esc(g.nama)}</div>
+          ${adik.map((x) => `<button type="button" class="gut-adik-r${x.id === g.id ? ' on' : ''}" data-tukar="${esc(x.id)}"><span>${x.luput ? fd(x.luput) : 'Tiada tarikh'}</span>${lencana(x)}<b>${x.qty === null ? '?' : x.qty}</b></button>`).join('')}
+          ${ro ? '' : `<button type="button" class="btn ghost sm" data-kbaru style="margin-top:6px">${ic('plus')} Tambah kelompok baharu</button>`}</div>`;
+      })() : ''}`,
     kaki: ro ? '<button class="btn" data-tutup>Tutup</button>' : `${g ? `<button class="btn bad ghost" data-padam>${ic('trash')} Padam</button>` : ''}<span class="spacer"></span><button class="btn" data-tutup>Batal</button><button class="btn pri" data-ok>Simpan</button>`
   });
   const f = $('#fG', d);
+  // bertukar ke kelompok lain / tambah kelompok baharu bagi guttae yang sama
+  $$('[data-tukar]', d).forEach((x) => (x.onclick = () => { if (x.dataset.tukar === g.id) return; const n = D.kelompok.find((y) => y.id === x.dataset.tukar); d.close(); borang(n); }));
+  const kb = $('[data-kbaru]', d); if (kb) kb.onclick = () => { d.close(); borang(null, g.nama); };
   $$('[data-s]', d).forEach((b) => (b.onclick = () => { const v = parseInt(f.qty.value, 10); f.qty.value = Math.max(0, (isNaN(v) ? 0 : v) + Number(b.dataset.s)); }));
   if (!g && !nama) f.nama.focus(); else if (!g) f.luput.focus();
   const hantar = (padam) => async (e) => {

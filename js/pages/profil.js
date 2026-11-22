@@ -41,6 +41,7 @@ export function papar(page, rest) {
       <h3 style="margin:0 0 6px;font-size:16px">${ic('bell', '')} Notifikasi</h3>
       <p class="small muted" style="margin:0 0 12px">Terima notis bila staf mengisi Pergerakan Staf, dan ringkasan pergerakan hari ini setiap pagi jam 8.00.</p>
       <p class="small" id="stNotis" style="margin:0 0 12px">Menyemak…</p>
+      <div class="small" id="diagNotis" style="margin:0 0 12px" hidden></div>
       <div class="row"><button class="btn pri" id="bNotis" hidden>${ic('bell')} Aktifkan notifikasi</button>
         <button class="btn" id="bUjiNotis" hidden>Hantar notis ujian</button><button class="btn ghost" id="bHentiNotis" hidden>Matikan</button></div>
     </section>
@@ -105,7 +106,15 @@ export function papar(page, rest) {
   };
   lukisNotis();
   $('#bNotis', page).onclick = (e) => sibuk(e.currentTarget, async () => { try { await aktifkanPush(); toast('Notifikasi diaktifkan', 'ok'); } catch (err) { ralat(err); } lukisNotis(); });
-  $('#bUjiNotis', page).onclick = (e) => sibuk(e.currentTarget, async () => { try { const r = await api('push.uji'); toast(r.dihantar ? 'Notis ujian dihantar — tunggu beberapa saat' : 'Tiada peranti aktif ditemui', r.dihantar ? 'ok' : 'bad'); } catch (err) { ralat(err); } });
+  $('#bUjiNotis', page).onclick = (e) => sibuk(e.currentTarget, async () => {
+    try {
+      const r = await api('push.uji'), dg = $('#diagNotis', page);
+      toast(r.dihantar ? 'Notis ujian dihantar — tunggu beberapa saat' : 'Notis ujian tidak sampai — lihat butiran', r.dihantar ? 'ok' : 'bad');
+      const b = r.butiran || [];
+      dg.hidden = !b.length;
+      dg.innerHTML = b.map((x) => `<div class="note-box" style="margin:0 0 6px;padding:8px 10px"><b>${esc(x.peranti || 'Peranti')}${x.hos ? ' · ' + esc(x.hos) : ''}</b> — ${x.kod ? 'kod ' + esc(x.kod) + ': ' : ''}${esc(x.mesej)}</div>`).join('');
+    } catch (err) { ralat(err); }
+  });
   $('#bHentiNotis', page).onclick = (e) => sibuk(e.currentTarget, async () => { await hentiPush(); toast('Notifikasi dimatikan di peranti ini'); lukisNotis(); });
 
   const ins = window.__pasang;

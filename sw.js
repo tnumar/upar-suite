@@ -3,7 +3,7 @@
 self.window = self; // config.js menulis window.UPAR_CONFIG
 try { importScripts('config.js'); } catch (e) {}
 const URL_API = (self.UPAR_CONFIG && self.UPAR_CONFIG.API_URL) || '/api';
-const VERSI = 'upar-v1.8.1';
+const VERSI = 'upar-v1.8.2';
 const RANGKA = [
   './', 'index.html', 'config.js', 'manifest.webmanifest', 'css/app.css',
   'js/app.js', 'js/api.js', 'js/ui.js', 'js/push.js', 'js/art.js', 'js/icons.js',

@@ -2,7 +2,7 @@ import { S, tajuk, setBoot, logKeluar } from '../app.js';
 import { api } from '../api.js';
 import { $, esc, toast, ralat, sibuk, simpan, ambil, inisial } from '../ui.js';
 import { ic } from '../icons.js';
-import { statusPush, aktifkanPush, hentiPush, PESAN_STATUS } from '../push.js';
+import { statusPush, aktifkanPush, hentiPush, segerakPush, PESAN_STATUS } from '../push.js';
 
 const NAMA_MODUL = { suite: 'Admin Suite', formulari: 'Formulari', bukuoff: 'Buku Off', inventori: 'Inventori', dashboard: 'Dashboard', guttae: 'Guttae', pergerakan: 'Pergerakan Staf' };
 
@@ -108,6 +108,7 @@ export function papar(page, rest) {
   $('#bNotis', page).onclick = (e) => sibuk(e.currentTarget, async () => { try { await aktifkanPush(); toast('Notifikasi diaktifkan', 'ok'); } catch (err) { ralat(err); } lukisNotis(); });
   $('#bUjiNotis', page).onclick = (e) => sibuk(e.currentTarget, async () => {
     try {
+      await segerakPush(true); // pastikan pelayan mengenali peranti ini
       const r = await api('push.uji'), dg = $('#diagNotis', page);
       toast(r.dihantar ? 'Notis ujian dihantar — tunggu beberapa saat' : 'Notis ujian tidak sampai — lihat butiran', r.dihantar ? 'ok' : 'bad');
       const b = r.butiran || [];

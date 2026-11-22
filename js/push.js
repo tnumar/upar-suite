@@ -57,14 +57,18 @@ export async function hentiPush() {
   simpan('push.daftar', '');
 }
 
-/** Selaraskan semula langganan dengan akaun yang sedang log masuk (sekali sehari, senyap). */
-export async function segerakPush() {
+/** Selaraskan langganan dengan akaun yang sedang log masuk (senyap): daftar semula jika pelayan tidak
+ *  mengenali peranti ini, atau sekali sehari. */
+export async function segerakPush(paksa = false) {
   try {
-    if (!disokong() || Notification.permission !== 'granted') return;
-    if (Date.now() - Number(ambil('push.daftar') || 0) < 864e5) return;
+    if (!disokong() || Notification.permission !== 'granted') return false;
     const reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription();
-    if (sub) await daftar(sub);
+    if (!sub) return false;
+    const lama = Date.now() - Number(ambil('push.daftar') || 0) > 864e5;
+    const { peranti } = await api('push.kunci', {}, { senyap: true });
+    if (paksa || lama || !peranti) { await daftar(sub); return true; }
   } catch (e) {}
+  return false;
 }
 
 export const PESAN_STATUS = {

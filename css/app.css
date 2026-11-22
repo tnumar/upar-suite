@@ -981,3 +981,8 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
 .kiosk-gut .kg-q span { font-weight: 600; font-size: 13px; color: var(--muted); line-height: 1.25; }
 .kiosk-gut small { font-size: 14px; color: var(--muted); }
 .kiosk-gut small em { font-style: normal; color: var(--bad); font-weight: 700; }
+
+/* Jemputan notifikasi (Utama) */
+.jemput-notis { display: flex; align-items: center; gap: 14px; margin-top: 18px; flex-wrap: wrap; }
+.jemput-notis .ic { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: var(--brand-soft); color: var(--brand); flex: none; }
+.jemput-notis .ic svg { width: 22px; height: 22px; }

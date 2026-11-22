@@ -1,6 +1,8 @@
 import { S, tajuk } from '../app.js';
 import { esc, salam, tarikhPanjang, namaPanggilan, pcKongsi } from '../ui.js';
 import { ic } from '../icons.js';
+import { statusPush, aktifkanPush } from '../push.js';
+import { toast, ralat, sibuk, ambil, simpan } from '../ui.js';
 import { seni } from '../art.js';
 
 const KAD = {
@@ -43,7 +45,23 @@ export function papar(page) {
         <blockquote>“${esc(q.teks)}”</blockquote>${q.sumber ? `<cite>— ${esc(q.sumber)}</cite>` : ''}</div>
     </section>` : ''}
     ${kad ? `<h2 class="sec">Ringkasan</h2><div class="grid g2">${kad}</div>` : ''}
+    <div id="jemputNotis"></div>
     <h2 class="sec">Pintasan</h2>
     <div class="shortcuts">${pin.map((p) => `<a class="sc" href="${p.hash}"><span class="ic" style="background:${p.warna}">${ic(p.ic)}</span>${esc(p.label)}</a>`).join('')}</div>
   `;
+  if (S.ada('pergerakan')) jemputNotis(page);
+}
+
+/** Jemputan sekali untuk mengaktifkan notifikasi (boleh ditolak; muncul semula selepas 14 hari). */
+async function jemputNotis(page) {
+  const el = page.querySelector('#jemputNotis'); if (!el) return;
+  if (Date.now() - Number(ambil('notis.tolak') || 0) < 14 * 864e5) return;
+  const st = await statusPush();
+  if (st !== 'tidak-aktif' && st !== 'perlu-pasang') return;
+  el.innerHTML = `<section class="card pad jemput-notis"><span class="ic">${ic('bell')}</span><div style="flex:1;min-width:0"><b>Terima notis Pergerakan Staf</b>
+    <p class="small muted" style="margin:2px 0 0">${st === 'perlu-pasang' ? 'Pasang UPAR Suite ke Skrin Utama (Safari → Kongsi → Tambah ke Skrin Utama), buka dari ikon, kemudian aktifkan notifikasi di sini.' : 'Notis bila staf mengisi cuti/off, dan ringkasan pergerakan hari ini setiap pagi jam 8.00.'}</p></div>
+    <div class="row" style="gap:6px">${st === 'tidak-aktif' ? `<button class="btn pri sm" data-on>${ic('bell')} Aktifkan</button>` : ''}<button class="btn ghost sm" data-tolak>Nanti</button></div></section>`;
+  const on = el.querySelector('[data-on]');
+  if (on) on.onclick = () => sibuk(on, async () => { try { await aktifkanPush(); toast('Notifikasi diaktifkan', 'ok'); el.innerHTML = ''; } catch (err) { ralat(err); } });
+  el.querySelector('[data-tolak]').onclick = () => { simpan('notis.tolak', String(Date.now())); el.innerHTML = ''; };
 }

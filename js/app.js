@@ -199,6 +199,7 @@ export async function segarBoot() {
 }
 
 export async function logKeluar() {
+  try { const p = await import('./push.js'); await p.hentiPush(); } catch (e) {} // peranti ini berhenti menerima notis akaun ini
   try { await api('auth.logout', {}, { senyap: true }); } catch (e) {}
   setToken(null); buang('boot'); S.boot = null; terbuka = false;
   ['formulari', 'bukuoff', 'inventori', 'dashboard', 'guttae'].forEach((k) => buang('cache.' + k));
@@ -247,6 +248,7 @@ if (/^#\/(sah\/|kiosk)/.test(location.hash || '')) lalu();
 else if (token() && S.me) {
   lalu();
   jadualPramuat();
+  import('./push.js').then((p) => p.segerakPush()).catch(() => {});
   segarBoot().then((ok) => { if (ok && location.hash.startsWith('#/utama')) lalu(); });
 } else paparLogin();
 

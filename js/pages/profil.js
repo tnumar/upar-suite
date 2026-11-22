@@ -2,6 +2,7 @@ import { S, tajuk, setBoot, logKeluar } from '../app.js';
 import { api } from '../api.js';
 import { $, esc, toast, ralat, sibuk, simpan, ambil, inisial } from '../ui.js';
 import { ic } from '../icons.js';
+import { statusPush, aktifkanPush, hentiPush, PESAN_STATUS } from '../push.js';
 
 const NAMA_MODUL = { suite: 'Admin Suite', formulari: 'Formulari', bukuoff: 'Buku Off', inventori: 'Inventori', dashboard: 'Dashboard', guttae: 'Guttae', pergerakan: 'Pergerakan Staf' };
 
@@ -35,6 +36,13 @@ export function papar(page, rest) {
         <label class="field"><span>Ulang PIN baharu</span><input class="in" name="ulang" type="password" inputmode="numeric" autocomplete="new-password" required></label>
         <button class="btn pri" type="submit">Tukar PIN</button>
       </form>
+    </section>
+    <section class="card pad" id="secNotis">
+      <h3 style="margin:0 0 6px;font-size:16px">${ic('bell', '')} Notifikasi</h3>
+      <p class="small muted" style="margin:0 0 12px">Terima notis bila staf mengisi Pergerakan Staf, dan ringkasan pergerakan hari ini setiap pagi jam 8.00.</p>
+      <p class="small" id="stNotis" style="margin:0 0 12px">Menyemak…</p>
+      <div class="row"><button class="btn pri" id="bNotis" hidden>${ic('bell')} Aktifkan notifikasi</button>
+        <button class="btn" id="bUjiNotis" hidden>Hantar notis ujian</button><button class="btn ghost" id="bHentiNotis" hidden>Matikan</button></div>
     </section>
     <section class="card pad">
       <h3 style="margin:0 0 14px;font-size:16px">Paparan</h3>
@@ -87,6 +95,18 @@ export function papar(page, rest) {
     page.querySelectorAll('#tema button').forEach((x) => x.classList.toggle('on', x === b));
   };
   $('#bKeluar', page).onclick = () => logKeluar();
+
+  const lukisNotis = async () => {
+    const st = await statusPush();
+    $('#stNotis', page).textContent = PESAN_STATUS[st] || '';
+    $('#stNotis', page).style.color = st === 'aktif' ? 'var(--ok)' : st === 'disekat' ? 'var(--bad)' : '';
+    $('#bNotis', page).hidden = !['tidak-aktif'].includes(st);
+    $('#bUjiNotis', page).hidden = $('#bHentiNotis', page).hidden = st !== 'aktif';
+  };
+  lukisNotis();
+  $('#bNotis', page).onclick = (e) => sibuk(e.currentTarget, async () => { try { await aktifkanPush(); toast('Notifikasi diaktifkan', 'ok'); } catch (err) { ralat(err); } lukisNotis(); });
+  $('#bUjiNotis', page).onclick = (e) => sibuk(e.currentTarget, async () => { try { const r = await api('push.uji'); toast(r.dihantar ? 'Notis ujian dihantar — tunggu beberapa saat' : 'Tiada peranti aktif ditemui', r.dihantar ? 'ok' : 'bad'); } catch (err) { ralat(err); } });
+  $('#bHentiNotis', page).onclick = (e) => sibuk(e.currentTarget, async () => { await hentiPush(); toast('Notifikasi dimatikan di peranti ini'); lukisNotis(); });
 
   const ins = window.__pasang;
   if (ins) { const bp = $('#bPasang', page); bp.hidden = false; bp.onclick = async () => { ins.prompt(); await ins.userChoice; window.__pasang = null; bp.hidden = true; }; }

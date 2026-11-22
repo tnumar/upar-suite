@@ -1,6 +1,6 @@
 // UPAR Suite — rangka aplikasi: sesi, penghala, navigasi.
-import { api, token, setToken, bilaAuthGagal, bilaDataBaharu, setSemulaDipakai, dipakaiHalaman, buangCacheApi } from './api.js';
-import { $, $$, esc, simpan, ambil, buang, toast, ralat, inisial } from './ui.js';
+import { api, token, setToken, bilaAuthGagal, bilaDataBaharu, setSemulaDipakai, dipakaiHalaman, buangCacheApi, bilaPinDiperlukan } from './api.js';
+import { $, $$, esc, simpan, ambil, buang, toast, ralat, inisial, sibuk, pcKongsi } from './ui.js';
 import { ic } from './icons.js';
 
 /* ---------- keadaan global ---------- */
@@ -87,6 +87,44 @@ bilaDataBaharu((fn) => {
   kekalSkrol = true; lalu();
 });
 addEventListener('input', (e) => { if (e.target.closest && e.target.closest('#page')) kotor = true; }, true);
+/* ---------- kunci modul peribadi (PC kongsi sahaja) ----------
+ * Buku Off & Admin minta PIN semula di PC. Terkunci semula bila keluar dari modul atau 5 minit tiada aktiviti. */
+const PERIBADI = ['bukuoff', 'admin'];
+const LAHU_MS = 5 * 60 * 1000;
+let terbuka = false, aktifAkhir = 0;
+function kunciSemula(lukis) {
+  if (!terbuka) return;
+  terbuka = false;
+  api('auth.kunci', {}, { senyap: true }).catch(() => {});
+  const k = ((location.hash || '').split('/')[1] || '');
+  if (lukis && PERIBADI.includes(k)) lalu();
+}
+['pointerdown', 'keydown'].forEach((ev) => addEventListener(ev, () => { aktifAkhir = Date.now(); }, { passive: true, capture: true }));
+setInterval(() => { if (terbuka && Date.now() - aktifAkhir > LAHU_MS) { kunciSemula(true); toast('Dikunci semula selepas 5 minit tiada aktiviti'); } }, 20000);
+bilaPinDiperlukan(() => { terbuka = false; lalu(); });
+
+function paparKunci(page, k, m) {
+  tajuk(m ? m.nama : 'Admin');
+  page.innerHTML = `<div class="kunci-p card">
+    <span class="kunci-ic">${ic('lock')}</span>
+    <h2>${esc(m ? m.nama : 'Admin')} dilindungi</h2>
+    <p class="muted">PC ini mungkin dikongsi. Masukkan PIN anda untuk meneruskan.<br><small>Modul akan dikunci semula bila anda keluar atau selepas 5 minit tiada aktiviti.</small></p>
+    <form id="fKunci" autocomplete="off"><input class="in" id="pinK" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN" aria-label="PIN" maxlength="12">
+      <button class="btn pri" type="submit">${ic('lock')} Buka</button></form>
+    <p class="small" id="msgK" style="color:var(--bad);min-height:20px;margin:10px 0 0"></p>
+    <p class="small muted" style="margin:0">Log masuk sebagai <b>${esc(S.me.nama)}</b>. Bukan anda? <a href="#/profil">Log keluar</a></p></div>`;
+  const f = $('#fKunci', page), inp = $('#pinK', page);
+  inp.focus();
+  f.onsubmit = (e) => {
+    e.preventDefault();
+    if (!inp.value) { inp.focus(); return; }
+    sibuk(f.querySelector('button'), async () => {
+      try { await api('auth.sahPin', { pin: inp.value }); terbuka = true; aktifAkhir = Date.now(); lalu(); }
+      catch (err) { $('#msgK', page).textContent = err.message; inp.value = ''; inp.focus(); }
+    });
+  };
+}
+
 async function lalu() {
   if ((location.hash || '').startsWith('#/sah/')) { // pautan pengesahan Buku Off daripada emel (tanpa log masuk)
     const [, , id = '', t = ''] = location.hash.split('/');
@@ -108,6 +146,10 @@ async function lalu() {
   if (k === 'lagi') return paparLagi(page);
   const m = MODUL.find((x) => x.k === k);
   if ((m && !boleh(m)) || (k === 'admin' && !S.ada('suite', ['ADMIN'])) || !HALAMAN[k]) { location.hash = '#/utama'; return; }
+  if (pcKongsi()) {
+    if (!PERIBADI.includes(k)) kunciSemula(false);
+    else if (!terbuka) { ++giliran; page.innerHTML = ''; return paparKunci(page, k, m); }
+  }
   const n = ++giliran;
   try {
     const mod = await HALAMAN[k]();
@@ -158,7 +200,7 @@ export async function segarBoot() {
 
 export async function logKeluar() {
   try { await api('auth.logout', {}, { senyap: true }); } catch (e) {}
-  setToken(null); buang('boot'); S.boot = null;
+  setToken(null); buang('boot'); S.boot = null; terbuka = false;
   ['formulari', 'bukuoff', 'inventori', 'dashboard', 'guttae'].forEach((k) => buang('cache.' + k));
   buangCacheApi();
   buang('dash.q');
@@ -181,13 +223,13 @@ async function pramuat() {
   const kerja = [];
   const dc = (fn, args = {}) => () => api(fn, args, { cache: true, senyap: true });
   if (ada('pergerakan')) kerja.push(async () => { const m = await import('./pages/pergerakan.js'); const d = new Date(); await dc('pergerakan.data', m.argsData(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')))(); });
-  if (ada('bukuoff')) kerja.push(dc('bukuoff.data'));
+  if (ada('bukuoff') && !pcKongsi()) kerja.push(dc('bukuoff.data'));
   if (ada('inventori')) kerja.push(dc('inventori.ringkasan'));
   if (ada('guttae') && !ambil('cache.guttae')) kerja.push(async () => simpan('cache.guttae', await api('guttae.data', {}, { senyap: true })));
   if (!ambil('cache.formulari')) kerja.push(async () => simpan('cache.formulari', await api('formulari.data', { v: '' }, { senyap: true })));
   kerja.push(dc('pb.data'));
   if (ada('uat')) kerja.push(dc('uat.data'));
-  if (S.ada('suite', ['ADMIN'])) kerja.push(dc('admin.staf'), dc('admin.tetapan'), dc('admin.senarai'));
+  if (S.ada('suite', ['ADMIN']) && !pcKongsi()) kerja.push(dc('admin.staf'), dc('admin.tetapan'), dc('admin.senarai'));
   const larian = async () => { while (kerja.length) { try { await kerja.shift()(); } catch (e) { /* abaikan: halaman akan cuba semula */ } } };
   await Promise.all([larian(), larian()]);
 }
@@ -198,6 +240,8 @@ addEventListener('online', statusRangkaian); addEventListener('offline', statusR
 statusRangkaian();
 
 terapJenama();
+// PC kongsi: buang data peribadi yang mungkin tersimpan oleh versi terdahulu
+if (pcKongsi()) { try { Object.keys(localStorage).filter((x) => /^upar\.cache\.(api\.(bukuoff|admin)\.|bukuoff$)/.test(x)).forEach((x) => localStorage.removeItem(x)); } catch (e) {} }
 addEventListener('hashchange', lalu);
 if (/^#\/(sah\/|kiosk)/.test(location.hash || '')) lalu();
 else if (token() && S.me) {

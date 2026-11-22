@@ -1,7 +1,7 @@
 // Buku Off — rekod cuti pampasan (tugasan +, off −), baki, pengesahan penyelia, cetak buku.
 import { S, tajuk, segarBoot } from '../app.js';
 import { api, kemasCache } from '../api.js';
-import { $, $$, esc, toast, ralat, sibuk, dialog, sahkan, simpan, ambil, inisial, debounce } from '../ui.js';
+import { $, $$, esc, toast, ralat, sibuk, dialog, sahkan, simpan, ambil, inisial, debounce, pcKongsi } from '../ui.js';
 import { ic } from '../icons.js';
 
 const BULAN = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogo', 'Sep', 'Okt', 'Nov', 'Dis'];
@@ -40,9 +40,9 @@ export async function papar(page, rest) {
   P = page;
   const v = rest[0] === 'sah' ? 'sah' : 'rekod';
   page.innerHTML = '<div class="skel" style="height:420px;margin-top:8px"></div>';
-  try { D = await api('bukuoff.data', {}, { cache: true }); simpan('cache.bukuoff', D); }
+  try { D = await api('bukuoff.data', {}, { cache: true }); if (!pcKongsi()) simpan('cache.bukuoff', D); }
   catch (e) {
-    D = ambil('cache.bukuoff', true);
+    D = pcKongsi() ? null : ambil('cache.bukuoff', true);
     if (!D) { page.innerHTML = `<div class="card empty">${ic('alert')}<p>${esc(e.message)}</p></div>`; return; }
     toast('Luar talian — memaparkan data terakhir', 'bad');
   }

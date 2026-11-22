@@ -42,8 +42,15 @@ function lukis() {
   const ringkas = `<div class="kiosk-sum">${JENIS.map((t) => { const a = items.filter((i) => i.type === t), s = a.filter((i) => i.status === AKHIR).length, lw = a.filter((i) => i.status < AKHIR && A.lewat(i, now)).length;
     return `<div class="s-${t.toLowerCase()}"><span>${LABEL[t]}</span><b>${s}<small> / ${a.length}</small></b>${lw ? `<em>${lw} lewat</em>` : ''}</div>`; }).join('')}</div>`;
   if (v === 'guttae') {
-    const g = (D.guttae || []).filter((x) => x.st !== 'ok');
-    m.innerHTML = ringkas + `<h2 class="kiosk-h">Guttae perlu perhatian</h2>${g.length ? `<div class="kiosk-gut">${g.map((x) => `<div class="${x.st}"><b>${esc(x.nama)}</b><span>${{ x: 'Ada yang luput', w: 'Hampir luput', n: 'Tarikh belum diisi', z: 'Habis' }[x.st]}</span><small>${x.boleh} botol${x.luputTerdekat ? ' · luput ' + esc(x.luputTerdekat) : ''}</small></div>`).join('')}</div>` : '<p class="kiosk-ok">✓ Semua guttae dalam keadaan baik.</p>'}`;
+    // Semua guttae ikut abjad dengan bilangan botol yang boleh digunakan
+    const g = (D.guttae || []).slice().sort((a, b) => a.nama.localeCompare(b.nama, 'ms', { sensitivity: 'base', numeric: true }));
+    const LBL = { x: 'Ada yang luput', w: 'Hampir luput', n: 'Tarikh belum diisi', z: 'Habis', ok: 'Baik' };
+    const tlk = (k) => { const [y, mo, d] = String(k).split('-'); return d ? `${d}/${mo}/${y}` : ''; };
+    const perlu = g.filter((x) => x.st !== 'ok').length;
+    m.innerHTML = ringkas + `<h2 class="kiosk-h">Stok guttae <small>${g.length} jenis${perlu ? ` · <em>${perlu} perlu perhatian</em>` : ' · semua baik'}</small></h2>${g.length ? `<div class="kiosk-gut">${g.map((x) => `<div class="${x.st}">
+      <div class="kg-n"><b>${esc(x.nama)}</b><span class="kg-st">${LBL[x.st] || ''}</span></div>
+      <div class="kg-q"><strong>${x.tiadaBilangan ? '?' : x.boleh}</strong><span>botol boleh<br>digunakan</span></div>
+      <small>${x.luputTerdekat ? 'Luput terdekat ' + esc(tlk(x.luputTerdekat)) : x.st === 'z' ? 'Tiada stok' : 'Tiada tarikh luput'}${x.luputQty ? ` · <em>${x.luputQty} botol luput — asingkan</em>` : ''}</small></div>`).join('')}</div>` : '<p class="kiosk-ok">Belum ada stok guttae direkodkan.</p>'}`;
   } else if (!items.length) m.innerHTML = ringkas + '<p class="kiosk-ok">Belum ada preskripsi hari ini.</p>';
   else m.innerHTML = ringkas + (v === 'wad' ? wadHTML(items, A, now, { ro: true }) : papanHTML(items, A, now, { ro: true, tarikh: kini }));
 }

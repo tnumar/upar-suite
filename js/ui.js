@@ -9,6 +9,13 @@ export function ambil(k, json = false) {
 }
 export function buang(k) { try { localStorage.removeItem(NS + k); } catch (e) {} }
 
+/** PC / komputer riba (bukan telefon atau tablet) — modul peribadi perlu PIN kedua di sini. */
+export function pcKongsi() {
+  const ua = navigator.userAgent || '';
+  const mudahAlih = /Android|iPhone|iPad|iPod|Mobile|Silk|Kindle/i.test(ua) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua));
+  return !mudahAlih;
+}
+
 /* ---------- DOM ---------- */
 export const $ = (s, el = document) => el.querySelector(s);
 export const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));

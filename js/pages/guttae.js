@@ -31,8 +31,7 @@ function kumpulan() {
     o.st = !hidup.length ? 'z' : luput.length ? 'x' : o.next && hari(o.next.luput) <= D.amaranHari ? 'w' : !o.next ? 'n' : 'ok';
     return o;
   });
-  const r = { x: 0, w: 1, n: 2, ok: 3, z: 4 };
-  return out.sort((a, b) => r[a.st] - r[b.st] || a.nama.localeCompare(b.nama, 'ms'));
+  return out.sort((a, b) => a.nama.localeCompare(b.nama, 'ms', { sensitivity: 'base', numeric: true })); // kekal ikut abjad
 }
 
 export async function papar(page) {

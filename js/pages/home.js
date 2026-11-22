@@ -1,5 +1,5 @@
 import { S, tajuk } from '../app.js';
-import { esc, salam, tarikhPanjang, namaPanggilan } from '../ui.js';
+import { esc, salam, tarikhPanjang, namaPanggilan, pcKongsi } from '../ui.js';
 import { ic } from '../icons.js';
 import { seni } from '../art.js';
 
@@ -24,7 +24,8 @@ export function papar(page) {
   const kad = Object.keys(KAD).filter((k) => S.ada(k)).map((k) => {
     const K = KAD[k], data = (b.kad || []).find((x) => x.modul === k);
     let isi;
-    if (!data) isi = `<p class="small muted" style="margin:0">Modul ini akan dilancarkan tidak lama lagi.</p>`;
+    if (k === 'bukuoff' && pcKongsi()) isi = `<p class="small muted" style="margin:0">${ic('lock')} Dilindungi PIN pada PC — klik untuk buka.</p>`;
+    else if (!data) isi = `<p class="small muted" style="margin:0">Modul ini akan dilancarkan tidak lama lagi.</p>`;
     else if (data.ralat) isi = `<p class="small muted" style="margin:0">${esc(data.ralat)}</p>`;
     else isi = `<div class="stats">${(data.stat || []).map((s) => `<div class="stat ${esc(s.nada || '')}"><b>${esc(s.nilai)}</b><span>${esc(s.label)}</span></div>`).join('')}</div>`;
     return `<a class="card kad" href="${K.hash}" style="color:inherit">

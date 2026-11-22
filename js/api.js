@@ -1,5 +1,5 @@
 // Panggilan API ke backend GAS. POST text/plain (tiada preflight CORS).
-import { simpan, ambil, buang } from './ui.js';
+import { simpan, ambil, buang, pcKongsi } from './ui.js';
 
 const URL_API = (window.UPAR_CONFIG && window.UPAR_CONFIG.API_URL) || '/api';
 
@@ -11,6 +11,11 @@ export function token() { return ambil('token'); }
 export function setToken(t) { if (t) simpan('token', t); else buang('token'); }
 
 let onAuthGagal = () => {};
+let onPin = () => {};
+/** Pelayan minta PIN kedua (PC kongsi: Buku Off / Admin). */
+export function bilaPinDiperlukan(fn) { onPin = fn; }
+/** Data modul peribadi tidak disimpan dalam pelayar PC kongsi. */
+export const peribadi = (fn) => /^(bukuoff|admin)\./.test(fn) && pcKongsi();
 export function bilaAuthGagal(fn) { onAuthGagal = fn; }
 
 /* ---------- cache dahulu, segar kemudian (stale-while-revalidate) ----------
@@ -37,6 +42,7 @@ export function buangCacheApi() {
 }
 
 async function apiCache(fn, args, opt) {
+  if (peribadi(fn)) return api(fn, args, { senyap: opt.senyap });
   const k = kunciCache(fn, args), c = ambil(k);
   dipakai.add(fn);
   if (c != null) {
@@ -59,7 +65,7 @@ async function apiCache(fn, args, opt) {
 /** Lupakan cache (cth selepas simpan borang) supaya bukaan seterusnya mengambil data segar. */
 export function lupaCache(fn, args) { const k = kunciCache(fn, args); buang(k); delete segarPada[k]; }
 /** Kemas kini cache selepas tindakan tulis (cth simpan) supaya bukaan seterusnya tepat. */
-export function kemasCache(fn, args, data) { const k = kunciCache(fn, args); simpan(k, JSON.stringify(data)); segarPada[k] = Date.now(); }
+export function kemasCache(fn, args, data) { if (peribadi(fn)) return; const k = kunciCache(fn, args); simpan(k, JSON.stringify(data)); segarPada[k] = Date.now(); }
 
 export async function api(fn, args = {}, opt = {}) {
   if (opt.cache) return apiCache(fn, args, opt);
@@ -82,6 +88,7 @@ export async function api(fn, args = {}, opt = {}) {
   if (tulis) tulisKe++; // tulisan selesai: bacaan yang dimulakan semasa tulisan berjalan juga basi
   if (!j.ok) {
     if (j.code === 'AUTH' && !senyap) onAuthGagal(j.error);
+    if (j.code === 'PIN' && !senyap) onPin(j.error);
     throw new RalatApi(j.error || 'Ralat tidak diketahui.', j.code);
   }
   return j.data;

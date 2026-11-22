@@ -1,5 +1,5 @@
 import { api } from '../api.js';
-import { $, esc, ralat, sibuk, ambil, simpan } from '../ui.js';
+import { $, esc, ralat, sibuk, ambil, simpan, pcKongsi } from '../ui.js';
 
 export function papar(root, selesai) {
   const idLepas = ambil('idLepas') || '';
@@ -39,7 +39,7 @@ export function papar(root, selesai) {
     sibuk(f.querySelector('button'), async () => {
       try {
         const peranti = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '';
-        const d = await api('auth.login', { id, pin, peranti: peranti + (matchMedia('(display-mode: standalone)').matches ? ' · app' : ' · pelayar') });
+        const d = await api('auth.login', { id, pin, peranti: peranti + (matchMedia('(display-mode: standalone)').matches ? ' · app' : ' · pelayar') + (pcKongsi() ? ' [PC]' : '') });
         simpan('idLepas', id);
         selesai(d);
       } catch (err) { $('#msg', root).textContent = err.message; f.pin.select(); }

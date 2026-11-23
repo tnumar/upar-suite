@@ -522,16 +522,46 @@ async function lukisUrus(el) {
     <td data-l="Aktif"><label class="switch"><input type="checkbox" data-f="aktif" ${k.aktif ? 'checked' : ''}></label></td>
     <td class="tk-aksi" style="white-space:nowrap"><button class="btn ghost icon" data-up aria-label="Naikkan">↑</button><button class="btn ghost icon" data-del aria-label="Padam">${ic('trash')}</button></td></tr>`;
   const teksCuti = (l) => l.map((c) => `${c.tarikh}  ${c.nama}`).join('\n');
+  // Cuti umum ikut tahun: setiap tab memaparkan & menyimpan tahun itu sahaja
+  const kiniThn = new Date().getFullYear();
+  let thn = String(kiniThn), asalCuti = '';
+  const senaraiThn = () => [...new Set([...cuti.map((c) => c.tarikh.slice(0, 4)), String(kiniThn), String(kiniThn + 1), thn])].sort();
+  const cutiThn = () => cuti.filter((c) => c.tarikh.startsWith(thn));
+  const ringkasCuti = () => {
+    const l = cutiThn();
+    if (!l.length) return `<p class="small muted" style="margin:0">Belum ada cuti umum bagi ${thn}.</p>`;
+    const hujung = l.filter((c) => [0, 6].includes(new Date(c.tarikh + 'T00:00:00').getDay())).length;
+    return `<p class="small muted" style="margin:0">${l.length} tarikh · ${new Set(l.map((c) => c.tarikh.slice(5, 7))).size} bulan${hujung ? ` · ${hujung} jatuh pada hujung minggu` : ''}</p>`;
+  };
+  const lukisCuti = () => {
+    const sec = $('[data-csec]', el); if (!sec) return;
+    $('[data-ctabs]', sec).innerHTML = senaraiThn().map((y) => { const n = cuti.filter((c) => c.tarikh.startsWith(y)).length; return `<button type="button" data-thn="${y}" class="${y === thn ? 'on' : ''}">${y}${n ? ` <small class="muted">${n}</small>` : ''}</button>`; }).join('') + `<button type="button" data-thnbaru title="Tambah tahun">+</button>`;
+    asalCuti = teksCuti(cutiThn());
+    const ta = $('[data-ct]', sec);
+    ta.value = asalCuti;
+    ta.placeholder = `${thn}-01-01  Tahun Baru\n01/02/${thn}  Hari Wilayah\n20/03/${thn} hingga 21/03/${thn}  Hari Raya Aidilfitri`;
+    $('[data-cn]', sec).textContent = `${cutiThn().length} tarikh`;
+    $('[data-csave]', sec).textContent = `Simpan cuti ${thn}`;
+    $('[data-cring]', sec).innerHTML = ringkasCuti();
+  };
+  const tukarThn = async (y) => {
+    if (y === thn) return;
+    if ($('[data-ct]', el).value.trim() !== asalCuti.trim() && !(await sahkan(`Perubahan cuti ${thn} belum disimpan. Tukar ke ${y} dan buang perubahan?`, { ya: 'Buang & tukar', bahaya: true }))) return;
+    thn = y; lukisCuti();
+  };
   el.innerHTML = `<div class="grid" style="gap:16px">
     <section class="card pad"><div class="row" style="margin-bottom:6px"><h3 style="margin:0;font-size:16px;flex:1">Kod pergerakan</h3>
       <button class="btn sm" data-kadd>${ic('plus')} Kod</button><button class="btn pri sm" data-ksave>Simpan kod</button></div>
       <p class="small muted" style="margin:0 0 12px">Maksud kod dipaparkan kepada semua staf. Nyahaktif kod yang tidak lagi digunakan (rekod lama kekal). Kod yang dipadam masih kelihatan kelabu pada rekod lama.</p>
       <div class="scroll-x"><table class="tbl tbl-kad"><thead><tr><th>Kod</th><th>Maksud</th><th>Jenis</th><th>Mula</th><th>Tamat</th><th>Warna</th><th>Aktif</th><th></th></tr></thead><tbody data-kb>${kod.map(baris).join('')}</tbody></table></div></section>
-    <section class="card pad"><div class="row" style="margin-bottom:6px"><h3 style="margin:0;font-size:16px;flex:1">Cuti umum</h3><span class="badge grey" data-cn>${cuti.length} tarikh</span><button class="btn pri sm" data-csave>Simpan cuti umum</button></div>
-      <p class="small muted" style="margin:0 0 10px">Tampal atau taip <b>banyak baris sekaligus</b> — satu cuti setiap baris. Format diterima:
+    <section class="card pad" data-csec><div class="row" style="margin-bottom:10px"><h3 style="margin:0;font-size:16px;flex:1">Cuti umum</h3><span class="badge grey" data-cn></span><button class="btn pri sm" data-csave>Simpan</button></div>
+      <div class="tabs cuti-thn" data-ctabs style="margin-bottom:10px"></div>
+      <p class="small muted" style="margin:0 0 10px">Pilih tahun, kemudian tampal atau taip <b>banyak baris sekaligus</b> — satu cuti setiap baris. Hanya tahun yang dipilih disimpan; tahun lain tidak berubah. Format diterima:
         <code>2027-01-01 Tahun Baru</code> · <code>01/02/2027, Hari Wilayah</code> · <code>20/03/2027 hingga 21/03/2027 Hari Raya Aidilfitri</code>. Boleh tampal terus dari Excel (tarikh ⇥ nama). Baris bermula # diabaikan.</p>
-      <textarea class="in mono" data-ct rows="14" spellcheck="false" placeholder="2027-01-01  Tahun Baru&#10;29/01/2027  Tahun Baru Cina&#10;20/03/2027 hingga 21/03/2027  Hari Raya Aidilfitri">${esc(teksCuti(cuti))}</textarea></section></div>`;
+      <textarea class="in mono" data-ct rows="14" spellcheck="false"></textarea>
+      <div data-cring style="margin-top:8px"></div></section></div>`;
   const kb = $('[data-kb]', el);
+  lukisCuti();
   const baca = () => $$('tr[data-i]', kb).map((tr) => ({
     kod: $('[data-f=kod]', tr).value.trim().toUpperCase(), label: $('[data-f=label]', tr).value.trim(), jenis: $('[data-f=jenis]', tr).value,
     mula: $('[data-f=mula]', tr).value, tamat: $('[data-f=tamat]', tr).value, warna: $('[data-f=warna]', tr).value, aktif: $('[data-f=aktif]', tr).checked
@@ -552,9 +582,12 @@ async function lukisUrus(el) {
       try { D.kod = await api('pergerakan.kod.simpan', { item: baca().filter((k) => k.kod) }); kod = D.kod.map((k) => ({ ...k })); indeks(); semula(); toast('Kod disimpan', 'ok'); }
       catch (err) { ralat(err); }
     });
+    const ty = e.target.closest('[data-thn]');
+    if (ty) return tukarThn(ty.dataset.thn);
+    if (e.target.closest('[data-thnbaru]')) return tukarThn(String(Math.max(...senaraiThn().map(Number)) + 1));
     const cs = e.target.closest('[data-csave]');
     if (cs) sibuk(cs, async () => {
-      try { cuti = await api('pergerakan.cuti.simpan', { teks: $('[data-ct]', el).value }); $('[data-ct]', el).value = teksCuti(cuti); $('[data-cn]', el).textContent = cuti.length + ' tarikh'; toast('Cuti umum disimpan', 'ok'); }
+      try { cuti = await api('pergerakan.cuti.simpan', { teks: $('[data-ct]', el).value, tahun: thn }); D.cuti = cuti; lukisCuti(); toast(`Cuti umum ${thn} disimpan`, 'ok'); }
       catch (err) { ralat(err); }
     });
   };

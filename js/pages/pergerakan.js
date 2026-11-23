@@ -549,8 +549,13 @@ async function lukisUrus(el) {
     if ($('[data-ct]', el).value.trim() !== asalCuti.trim() && !(await sahkan(`Perubahan cuti ${thn} belum disimpan. Tukar ke ${y} dan buang perubahan?`, { ya: 'Buang & tukar', bahaya: true }))) return;
     thn = y; lukisCuti();
   };
-  el.innerHTML = `<div class="grid" style="gap:16px">
-    <section class="card pad"><div class="row" style="margin-bottom:6px"><h3 style="margin:0;font-size:16px;flex:1">Kod pergerakan</h3>
+  const UTAB = ['kod', 'cuti'];
+  let utab = UTAB.includes(ambil('perg.urusTab')) ? ambil('perg.urusTab') : 'kod';
+  el.innerHTML = `<div class="tabs urus-tab" data-utab style="margin-bottom:14px">
+      <button type="button" data-ut="kod">${ic('list')} Kod pergerakan <small class="muted">${kod.length}</small></button>
+      <button type="button" data-ut="cuti">${ic('calendar')} Cuti umum <small class="muted" data-utc></small></button></div>
+    <div class="grid" style="gap:16px">
+    <section class="card pad" data-ksec><div class="row" style="margin-bottom:6px"><h3 style="margin:0;font-size:16px;flex:1">Kod pergerakan</h3>
       <button class="btn sm" data-kadd>${ic('plus')} Kod</button><button class="btn pri sm" data-ksave>Simpan kod</button></div>
       <p class="small muted" style="margin:0 0 12px">Maksud kod dipaparkan kepada semua staf. Nyahaktif kod yang tidak lagi digunakan (rekod lama kekal). Kod yang dipadam masih kelihatan kelabu pada rekod lama.</p>
       <div class="scroll-x"><table class="tbl tbl-kad"><thead><tr><th>Kod</th><th>Maksud</th><th>Jenis</th><th>Mula</th><th>Tamat</th><th>Warna</th><th>Aktif</th><th></th></tr></thead><tbody data-kb>${kod.map(baris).join('')}</tbody></table></div></section>
@@ -562,6 +567,13 @@ async function lukisUrus(el) {
       <div data-cring style="margin-top:8px"></div></section></div>`;
   const kb = $('[data-kb]', el);
   lukisCuti();
+  const tunjukTab = () => {
+    $$('[data-ut]', el).forEach((b) => b.classList.toggle('on', b.dataset.ut === utab));
+    $('[data-ksec]', el).hidden = utab !== 'kod';
+    $('[data-csec]', el).hidden = utab !== 'cuti';
+    $('[data-utc]', el).textContent = cuti.filter((c) => c.tarikh.startsWith(String(new Date().getFullYear()))).length || '';
+  };
+  tunjukTab();
   const baca = () => $$('tr[data-i]', kb).map((tr) => ({
     kod: $('[data-f=kod]', tr).value.trim().toUpperCase(), label: $('[data-f=label]', tr).value.trim(), jenis: $('[data-f=jenis]', tr).value,
     mula: $('[data-f=mula]', tr).value, tamat: $('[data-f=tamat]', tr).value, warna: $('[data-f=warna]', tr).value, aktif: $('[data-f=aktif]', tr).checked
@@ -582,12 +594,14 @@ async function lukisUrus(el) {
       try { D.kod = await api('pergerakan.kod.simpan', { item: baca().filter((k) => k.kod) }); kod = D.kod.map((k) => ({ ...k })); indeks(); semula(); toast('Kod disimpan', 'ok'); }
       catch (err) { ralat(err); }
     });
+    const ut = e.target.closest('[data-ut]');
+    if (ut) { utab = ut.dataset.ut; simpan('perg.urusTab', utab); tunjukTab(); return; }
     const ty = e.target.closest('[data-thn]');
     if (ty) return tukarThn(ty.dataset.thn);
     if (e.target.closest('[data-thnbaru]')) return tukarThn(String(Math.max(...senaraiThn().map(Number)) + 1));
     const cs = e.target.closest('[data-csave]');
     if (cs) sibuk(cs, async () => {
-      try { cuti = await api('pergerakan.cuti.simpan', { teks: $('[data-ct]', el).value, tahun: thn }); D.cuti = cuti; lukisCuti(); toast(`Cuti umum ${thn} disimpan`, 'ok'); }
+      try { cuti = await api('pergerakan.cuti.simpan', { teks: $('[data-ct]', el).value, tahun: thn }); D.cuti = cuti; lukisCuti(); tunjukTab(); toast(`Cuti umum ${thn} disimpan`, 'ok'); }
       catch (err) { ralat(err); }
     });
   };

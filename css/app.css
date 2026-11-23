@@ -990,3 +990,8 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
 /* Cuti umum ikut tahun */
 .cuti-thn { display: flex; flex-wrap: wrap; max-width: 100%; }
 .cuti-thn button small { font-weight: 600; margin-left: 4px; }
+
+/* Urus kod & cuti umum: tab */
+.urus-tab button { display: inline-flex; align-items: center; gap: 6px; }
+.urus-tab button svg { width: 16px; height: 16px; }
+.urus-tab button small { font-weight: 600; }
